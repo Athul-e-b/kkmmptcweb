@@ -1,10 +1,6 @@
 /**
  * KKMMPTC Kallettumkara - Shared Admin Authentication
  * Used by BOTH admin.html (notices/applications) and department-admin.html
- * (staff/HOD/events/principal/grievances) — same shared admin password,
- * same session, so signing in on either page authenticates both (they're
- * really one admin identity, just two different work areas).
- *
  * Both pages must use the same element IDs for this to work:
  *   #loginPanel, #adminWorkspace, #logoutBtn, #adminPasswordInput, #loginError
  *
@@ -49,7 +45,6 @@ function formatApiError(data, status) {
 
 async function adminLogin(e) {
     e.preventDefault();
-    const phoneEl = document.getElementById('adminPhoneInput');
     const password = document.getElementById('adminPasswordInput').value;
     const errorBox = document.getElementById('loginError');
     errorBox.classList.add('hidden');
@@ -57,7 +52,7 @@ async function adminLogin(e) {
         const result = await apiCall('/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: phoneEl ? phoneEl.value.trim() : '', password }),
+            body: JSON.stringify({ password }),
         });
         sessionStorage.setItem(ADMIN_TOKEN_KEY, result.access_token);
         await showAdminWorkspace();
