@@ -74,7 +74,7 @@
             </button>
 
             <!-- CHAT WINDOW DRAWER -->
-            <div id="chatbotWindow" class="fixed bottom-24 right-4 sm:right-6 z-50 w-[92vw] sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden hidden flex-col transition-all duration-300 max-h-[520px]">
+            <div id="chatbotWindow" class="fixed z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden hidden flex-col transition-all duration-300">
                 
                 <!-- CHAT HEADER -->
                 <div class="bg-gradient-to-r from-primary to-primary-dark text-white p-4 flex items-center justify-between">
@@ -114,8 +114,8 @@
 
                 <!-- CHAT INPUT FORM -->
                 <form onsubmit="handleChatSubmit(event)" class="p-3 bg-white border-t border-slate-200 flex gap-2">
-                    <input type="text" id="chatbotInput" placeholder="Type your query (e.g. Fees, Biomedical, Address)..." class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-primary">
-                    <button type="submit" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl font-bold text-xs transition shrink-0">
+                    <input type="text" id="chatbotInput" placeholder="Type your query (e.g. Fees, Biomedical, Address)..." class="min-w-0 flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-primary">
+                    <button type="submit" class="bg-primary hover:bg-primary-dark text-white min-w-[44px] px-4 py-2 rounded-xl font-bold text-xs transition shrink-0">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </form>

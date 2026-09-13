@@ -37,7 +37,7 @@ function deptCard(d) {
                 <p class="text-slate-600 text-xs leading-relaxed mt-2 flex-1">${escapeHTML(desc)}</p>
                 ${hodBlock(d)}
                 <div class="text-[11px] text-slate-500 mt-3 space-y-1">
-                    ${d.email ? `<div><i class="fa-solid fa-envelope text-primary mr-1"></i>${escapeHTML(d.email)}</div>` : ''}
+                    ${d.email ? `<div class="break-all"><i class="fa-solid fa-envelope text-primary mr-1"></i>${escapeHTML(d.email)}</div>` : ''}
                     ${d.phone ? `<div><i class="fa-solid fa-phone text-primary mr-1"></i>${escapeHTML(d.phone)}</div>` : ''}
                 </div>
                 <a href="departments.html?department=${encodeURIComponent(d.code)}" class="mt-4 inline-flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-bold text-xs py-2.5 rounded-lg">
@@ -117,7 +117,7 @@ function detailHTML(d, staff, events, gallery) {
 
                 <section class="mt-10">
                     <h3 class="font-heading font-bold text-slate-900 mb-3">Contact</h3>
-                    <p class="text-xs text-slate-600">${d.phone ? `☎ ${escapeHTML(d.phone)}` : ''} ${d.email ? ` · ✉ ${escapeHTML(d.email)}` : ''}</p>
+                    <p class="text-xs text-slate-600 break-words">${d.phone ? `☎ ${escapeHTML(d.phone)}` : ''} ${d.email ? ` · ✉ ${escapeHTML(d.email)}` : ''}</p>
                 </section>
 
                 <section class="mt-10">

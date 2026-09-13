@@ -131,28 +131,27 @@
     <!-- MAIN NAVIGATION BAR -->
     <header class="sticky top-0 z-[60] glass-nav border-b border-slate-200 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
-            <div class="nav-bar-row flex items-center justify-between h-20 overflow-visible">
+            <div class="nav-bar-row flex items-center justify-between min-h-[4.5rem] lg:h-20 py-2 lg:py-0 gap-2 overflow-visible">
 
                 <!-- BRAND / LOGO -->
-                <a href="index.html" class="flex items-center gap-3 group shrink-0">
+                <a href="index.html" class="site-brand flex items-center gap-2 sm:gap-3 group">
                     <div
-                        class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md shadow-primary/20 group-hover:scale-105 transition shrink-0">
-                        <i class="fa-solid fa-building-columns text-xl sm:text-2xl"></i>
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md shadow-primary/20 group-hover:scale-105 transition shrink-0">
+                        <i class="fa-solid fa-building-columns text-lg sm:text-2xl"></i>
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
+                    <div class="site-brand-text">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span
                                 class="bg-primary/10 text-primary text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase">IHRD
                                 Govt. Institution</span>
-                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-medium hidden xs:inline">Est.
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-medium hidden sm:inline">Est.
                                 1993 | AICTE Approved</span>
                         </div>
                         <h1
-                        class="text-[11px] sm:text-xs font-semibold text-primary tracking-wide">
+                        class="text-[10px] sm:text-xs font-semibold text-primary tracking-wide leading-tight">
                         K. KARUNAKARAN MEMORIAL
                         </h1>
-                        <p class="text-xs sm:text-base font-bold font-heading text-slate-900 group-hover:text-primary transition leading-tight mt-0.5"></p>
-
+                        <p class="text-[10px] sm:text-xs lg:text-base font-bold font-heading text-slate-900 group-hover:text-primary transition leading-tight mt-0.5">
                             MODEL POLYTECHNIC COLLEGE, KALLETTUMKARA
                         </p>
                     </div>
@@ -247,7 +246,7 @@
                     </button>
                     <button type="button" onclick="toggleMobileMenu()"
                         class="lg:hidden p-2 text-slate-700 hover:text-primary focus:outline-none"
-                        aria-label="Toggle Navigation Menu">
+                        aria-label="Toggle Navigation Menu" aria-controls="mobileMenu" aria-expanded="false" id="menuToggleBtn">
                         <i class="fa-solid fa-bars text-2xl transition-transform" id="menuIcon"></i>
                     </button>
                 </div>
@@ -256,7 +255,7 @@
 
         <!-- MOBILE NAVIGATION DRAWER -->
         <div id="mobileMenu"
-            class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
+            class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-2">
             <a href="index.html" onclick="toggleMobileMenu()"
                 class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-primary bg-primary/5"><i
                     class="fa-solid fa-house mr-2"></i>Home</a>
@@ -313,7 +312,7 @@
 
     <!-- HERO SECTION SLIDER -->
     <section id="home"
-        class="relative bg-slate-900 text-white min-h-[580px] lg:min-h-[640px] flex items-center overflow-hidden">
+        class="relative bg-slate-900 text-white min-h-[28rem] sm:min-h-[36rem] lg:min-h-[640px] flex items-center overflow-hidden">
 
         <div class="absolute inset-0 z-0">
             <div id="slide1"
@@ -330,17 +329,17 @@
             </div>
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24 w-full">
             <div class="max-w-3xl">
 
                 <div
-                    class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-accent border border-white/20 mb-6">
+                    class="hero-kicker inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-accent border border-white/20 mb-6">
                     <span class="w-2 h-2 rounded-full bg-accent animate-ping"></span>
                     Government Institution under IHRD Kerala | Est. 1993
                 </div>
 
                 <div id="heroTextContainer">
-                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-heading leading-tight mb-4">
+                    <h1 class="text-[1.65rem] sm:text-5xl lg:text-6xl font-extrabold font-heading leading-tight mb-4">
                         Building Future Technocrats & Engineers
                     </h1>
                     <p class="text-slate-200 text-base sm:text-lg mb-8 leading-relaxed font-normal">
@@ -350,7 +349,7 @@
                     </p>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-4">
+                <div class="hero-actions flex flex-wrap items-center gap-3 sm:gap-4">
                     <a href="admissions.html"
                         class="bg-secondary hover:bg-secondary-dark text-white font-bold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-secondary/30 transition duration-300 flex items-center gap-2 text-sm sm:text-base">
                         <i class="fa-solid fa-graduation-cap"></i> Apply Now (2026-27)
@@ -386,7 +385,7 @@
     <!-- QUICK STATS SECTION WITH ANIMATED COUNTERS -->
     <section class="relative z-30 -mt-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-            class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 grid grid-cols-2 md:grid-cols-5 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            class="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 sm:p-8 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 text-center md:divide-x divide-slate-100">
             <div class="p-2">
                 <div class="text-3xl sm:text-4xl font-extrabold font-heading text-primary mb-1"><span
                         class="stat-counter" data-target="1200">1200</span>+</div>
@@ -462,10 +461,10 @@
                 <div class="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
                     <img src="images/college.png"
                         alt="K. Karunakaran Memorial Model Polytechnic College, Kallettumkara Campus Main Building"
-                        class="w-full h-[400px] object-cover hover:scale-105 transition duration-500">
+                        class="w-full h-52 sm:h-80 lg:h-[400px] object-cover hover:scale-105 transition duration-500">
                 </div>
                 <div
-                    class="absolute -bottom-6 -right-6 z-20 bg-primary text-white p-6 rounded-2xl shadow-xl max-w-xs hidden sm:block">
+                    class="absolute bottom-3 right-3 lg:-bottom-6 lg:-right-6 z-20 bg-primary text-white p-4 sm:p-6 rounded-2xl shadow-xl max-w-[min(16rem,calc(100%-1.5rem))] hidden sm:block">
                     <div class="flex items-center gap-3 mb-2">
                         <i class="fa-solid fa-award text-accent text-3xl"></i>
                         <div>
@@ -555,7 +554,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <a href="#principal-message"
                         class="bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2.5 rounded-lg text-xs transition flex items-center gap-2">
                         <i class="fa-solid fa-user-tie"></i> Read Principal's Message
@@ -583,7 +582,7 @@
                     </div>
                     <div>
                         <div
-                            class="w-36 h-36 rounded-full border-4 border-accent overflow-hidden mb-4 shadow-xl ring-4 ring-white/20">
+                            class="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-accent overflow-hidden mb-4 shadow-xl ring-4 ring-white/20">
                             <img id="principalPhoto"
                                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400"
                                 alt="Principal KKMMPTC Kallettumkara" class="w-full h-full object-cover">
@@ -772,8 +771,8 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="galleryGrid">
-                <p class="text-slate-400 text-xs col-span-4">Loading gallery…</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4" id="galleryGrid">
+                <p class="text-slate-400 text-xs col-span-full">Loading gallery…</p>
             </div>
         </div>
     </section>
@@ -1048,7 +1047,7 @@
                     Portals & Social</h4>
                 <ul class="space-y-2 text-[11px]">
                     <li><a href="https://www.youtube.com/@kkmmptconline7935" target="_blank" rel="noopener noreferrer"
-                            class="hover:text-accent transition flex items-center gap-1.5 text-red-400 font-semibold">&bull;
+                            class="hover:text-accent transition flex items-start gap-1.5 text-red-400 font-semibold break-words">&bull;
                             Official YouTube Channel (@kkmmptconline7935) <i
                                 class="fa-brands fa-youtube text-red-500"></i></a></li>
                     <li><a href="http://www.ihrd.ac.in" target="_blank" rel="noopener noreferrer"

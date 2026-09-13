@@ -112,26 +112,79 @@ setInterval(() => {
 }, 6000);
 
 // MOBILE MENU TOGGLE
+function updateNavbarOffset() {
+    const header = document.querySelector('header.glass-nav');
+    const offset = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
+    document.documentElement.style.setProperty('--navbar-offset', `${Math.max(offset, 0)}px`);
+}
+
+function ensureMobileMenuBackdrop() {
+    const menu = document.getElementById('mobileMenu');
+    if (menu && menu.parentElement !== document.body) {
+        document.body.appendChild(menu);
+    }
+    let backdrop = document.getElementById('mobileMenuBackdrop');
+    if (backdrop) return backdrop;
+    backdrop = document.createElement('div');
+    backdrop.id = 'mobileMenuBackdrop';
+    backdrop.className = 'hidden lg:hidden';
+    backdrop.addEventListener('click', closeMobileMenu);
+    document.body.appendChild(backdrop);
+    return backdrop;
+}
+
+function closeMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const icon = document.getElementById('menuIcon');
+    const btn = document.getElementById('menuToggleBtn');
+    const backdrop = document.getElementById('mobileMenuBackdrop');
+    if (menu) menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+    document.body.classList.remove('nav-open');
+    if (icon) {
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-bars');
+    }
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
     const icon = document.getElementById('menuIcon');
+    const btn = document.getElementById('menuToggleBtn');
     if (!menu) return;
 
     const isHidden = menu.classList.contains('hidden');
+    const backdrop = ensureMobileMenuBackdrop();
     if (isHidden) {
+        updateNavbarOffset();
         menu.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+        document.body.classList.add('nav-open');
+        menu.scrollTop = 0;
         if (icon) {
             icon.classList.remove('fa-bars');
             icon.classList.add('fa-xmark');
         }
+        if (btn) btn.setAttribute('aria-expanded', 'true');
     } else {
-        menu.classList.add('hidden');
-        if (icon) {
-            icon.classList.remove('fa-xmark');
-            icon.classList.add('fa-bars');
-        }
+        closeMobileMenu();
     }
 }
+
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('mobileMenu');
+    if (!menu || menu.classList.contains('hidden')) return;
+    if (e.target.closest('#mobileMenu a')) closeMobileMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMobileMenu();
+});
+
+window.addEventListener('resize', () => {
+    if (document.body.classList.contains('nav-open')) updateNavbarOffset();
+});
 
 // GENERIC MODAL TOGGLE
 function toggleModal(id) {

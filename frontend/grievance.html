@@ -28,32 +28,32 @@
 <body class="antialiased bg-slate-50 text-slate-800">
 
     <!-- HEADER NAVIGATION -->
-    <header class="sticky top-0 z-40 glass-nav border-b border-slate-200 shadow-sm">
+    <header class="sticky top-0 z-[60] glass-nav border-b border-slate-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <a href="index.html" class="flex items-center gap-3 group">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md">
-                        <i class="fa-solid fa-building-columns text-xl"></i>
+            <div class="nav-bar-row flex items-center justify-between min-h-[4.5rem] lg:h-20 py-2 lg:py-0 gap-2">
+                <a href="index.html" class="site-brand flex items-center gap-2 sm:gap-3 group">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md shrink-0">
+                        <i class="fa-solid fa-building-columns text-lg sm:text-xl"></i>
                     </div>
-                    <div>
+                    <div class="site-brand-text">
                         <div class="text-[10px] font-bold text-primary tracking-wider uppercase">IHRD Govt. College</div>
-                        <h1 class="text-sm font-bold font-heading text-slate-900 group-hover:text-primary transition">KKM MODEL POLYTECHNIC COLLEGE KALLETTUMKARA</h1>
+                        <h1 class="text-[11px] sm:text-sm font-bold font-heading text-slate-900 group-hover:text-primary transition leading-snug">KKM MODEL POLYTECHNIC COLLEGE, KALLETTUMKARA</h1>
                     </div>
                 </a>
-                <nav class="hidden md:flex items-center gap-2 lg:gap-4 text-xs font-semibold text-slate-700 shrink-0">
+                <nav class="hidden lg:flex items-center gap-2 lg:gap-4 text-xs font-semibold text-slate-700 shrink-0">
                     <a href="index.html" class="hover:text-primary px-2 py-1.5">Home</a>
                     <a href="departments.html" class="hover:text-primary px-2 py-1.5">Departments</a>
                     <a href="admissions.html" class="hover:text-primary px-2 py-1.5">Admissions</a>
                     <a href="grievance.html" class="text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-lg">Grievance</a>
                     <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-primary transition"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
                 </nav>
-                <div class="flex items-center gap-2 md:hidden shrink-0">
-                    <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
-                    <button type="button" onclick="toggleMobileMenu()" class="p-2 text-slate-700" aria-label="Open menu"><i class="fa-solid fa-bars text-xl" id="menuIcon"></i></button>
+                <div class="flex items-center gap-1 sm:gap-2 lg:hidden shrink-0">
+                    <a href="admin.html" class="bg-slate-900 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-user-gear sm:mr-1"></i> <span class="hidden sm:inline">Admin</span></a>
+                    <button type="button" onclick="toggleMobileMenu()" class="p-2 text-slate-700" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false" id="menuToggleBtn"><i class="fa-solid fa-bars text-xl" id="menuIcon"></i></button>
                 </div>
             </div>
         </div>
-        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-sm font-medium">
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-sm font-medium">
             <a href="index.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Home</a>
             <a href="departments.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Departments &amp; Syllabus</a>
             <a href="admissions.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Admissions &amp; Fees</a>
@@ -63,7 +63,7 @@
     </header>
 
     <!-- BANNER -->
-    <section class="bg-primary-dark text-white py-14">
+    <section class="bg-primary-dark text-white py-10 sm:py-14">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <span class="bg-accent text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Student &amp; Public Grievance Cell</span>
             <h1 class="text-3xl sm:text-4xl font-extrabold font-heading mt-2">Grievance Redressal</h1>

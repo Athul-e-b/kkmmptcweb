@@ -10,6 +10,12 @@
     --secondary-dark: #B01E1E;
     --accent: #FFC107;
     --bgsoft: #F8FAFC;
+    --navbar-offset: 4.75rem;
+}
+
+html {
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 body {
@@ -17,7 +23,22 @@ body {
     background-color: var(--bgsoft);
     color: #1E293B;
     overflow-x: hidden;
+    max-width: 100%;
     scroll-behavior: smooth;
+}
+
+img, video, iframe {
+    max-width: 100%;
+}
+
+iframe {
+    display: block;
+}
+
+a[href^="mailto:"],
+a[href^="tel:"] {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
@@ -37,6 +58,25 @@ header.glass-nav,
 header.glass-nav > div,
 header.glass-nav .nav-bar-row {
     overflow: visible;
+}
+
+.nav-bar-row {
+    min-width: 0;
+}
+
+.site-brand {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.site-brand-text {
+    min-width: 0;
+}
+
+@media (min-width: 1024px) {
+    .site-brand {
+        flex: 0 0 auto;
+    }
 }
 .nav-dropdown {
     position: absolute;
@@ -128,6 +168,105 @@ header.glass-nav .nav-bar-row {
 /* CMS admin sidebar on small screens */
 @media (max-width: 1023px) {
     #cmsSidebar.cms-open { transform: translateX(0); }
+}
+
+/* Mobile / tablet overlay navigation — desktop nav is unchanged (lg+) */
+@media (max-width: 1023px) {
+    body.nav-open {
+        overflow: hidden;
+    }
+
+    #mobileMenuBackdrop {
+        position: fixed;
+        top: var(--navbar-offset, 4.75rem);
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 55;
+        background: rgba(15, 23, 42, 0.4);
+    }
+
+    #mobileMenu {
+        position: fixed;
+        top: var(--navbar-offset, 4.75rem);
+        right: 0;
+        bottom: 0;
+        left: auto;
+        z-index: 56;
+        width: min(18rem, 80vw);
+        height: auto;
+        max-height: none;
+        margin: 0;
+        padding: 0.75rem 1rem max(1.25rem, env(safe-area-inset-bottom, 0px));
+        background: #fff;
+        border: 0;
+        border-left: 1px solid #e2e8f0;
+        box-shadow: -12px 0 32px rgba(15, 23, 42, 0.12);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #mobileMenu.hidden,
+    #mobileMenuBackdrop.hidden {
+        display: none !important;
+    }
+
+    #mobileMenu a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        border-radius: 0.5rem;
+    }
+
+    #home {
+        min-height: min(32rem, 88svh);
+    }
+
+    #home .hero-actions > a,
+    #home .hero-actions > button {
+        justify-content: center;
+    }
+
+    .hero-kicker {
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 639px) {
+    #about, #departments, #placements, #gallery, #downloads, #contact,
+    #notices, #events-board, #principal-message {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+
+    footer {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+}
+
+/* Chatbot stays inside the viewport */
+#chatbotWindow {
+    width: min(24rem, calc(100vw - 1.5rem));
+    max-height: min(520px, calc(100dvh - 6.5rem));
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    left: auto;
+    bottom: 5.5rem;
+}
+
+#chatbotTriggerBtn {
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (max-width: 639px) {
+    #chatbotWindow {
+        max-height: min(70dvh, calc(100dvh - 5.75rem));
+    }
 }
 
 /* Print Styles */
