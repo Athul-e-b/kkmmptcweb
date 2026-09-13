@@ -177,5 +177,5 @@ if db.query(models.CollegeInfo).count() == 0:
     ))
     db.commit()
 
-print("\nSeed complete. Register the first admin at /admin-register (one-time). Then sign in at /admin-login with phone number + password.")
+print("\nSeed complete. Register the first admin at /admin-register (one-time). Then sign in at /admin-login with the administrator password.")
 db.close()

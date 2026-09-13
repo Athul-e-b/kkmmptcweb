@@ -53,14 +53,13 @@ def login(payload: schemas.LoginRequest, request: Request, db: Session = Depends
     admin = db.query(models.AdminUser).first()
     if not admin:
         raise HTTPException(status_code=401, detail="No admin account is registered yet.")
-    phone = auth.normalize_phone(payload.phone)
     ip = request.client.host if request.client else "unknown"
-    bucket = f"login:{ip}:{phone}"
+    bucket = f"login:{ip}"
     if _rate_limited(bucket):
         raise HTTPException(status_code=429, detail="Too many login attempts. Try again later.")
-    if phone != admin.phone or not auth.verify_password(payload.password, admin.password_hash):
+    if not auth.verify_password(payload.password, admin.password_hash):
         _note_failure(bucket)
-        raise HTTPException(status_code=401, detail="Incorrect phone number or password")
+        raise HTTPException(status_code=401, detail="Incorrect password")
     return schemas.TokenResponse(access_token=auth.create_access_token(admin.phone))
 
 

@@ -4,15 +4,7 @@ from pydantic import BaseModel, Field, field_validator, field_serializer
 
 
 class LoginRequest(BaseModel):
-    phone: str
-    password: str
-
-    @field_validator("phone", "password", mode="before")
-    @classmethod
-    def strip_login(cls, v):
-        if isinstance(v, str):
-            return v.strip()
-        return v
+    password: str = Field(..., min_length=1)
 
 
 class TokenResponse(BaseModel):
