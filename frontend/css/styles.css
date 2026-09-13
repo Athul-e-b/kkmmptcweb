@@ -1,0 +1,145 @@
+/* Custom styles for KKM Model Polytechnic College Kallettumkara Web Portal */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #0B4F9F;
+    --primary-dark: #083B78;
+    --primary-light: #1B62B8;
+    --secondary: #D62828;
+    --secondary-dark: #B01E1E;
+    --accent: #FFC107;
+    --bgsoft: #F8FAFC;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bgsoft);
+    color: #1E293B;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Glassmorphism Navigation */
+.glass-nav {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    overflow: visible;
+}
+
+/* Dropdowns must paint below the bar, not inside a clipped nav row */
+header.glass-nav,
+header.glass-nav > div,
+header.glass-nav .nav-bar-row {
+    overflow: visible;
+}
+.nav-dropdown {
+    position: absolute;
+    top: 100%;
+    z-index: 80;
+    min-width: 240px;
+    padding-top: 0.4rem;
+    display: none;
+}
+.nav-dropdown-trigger:hover > .nav-dropdown,
+.nav-dropdown-trigger:focus-within > .nav-dropdown {
+    display: block;
+}
+.nav-dropdown-panel {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+    border: 1px solid #f1f5f9;
+    padding: 0.5rem 0;
+    max-height: min(70vh, 420px);
+    overflow-y: auto;
+}
+.nav-dropdown-panel a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    color: #334155;
+    white-space: nowrap;
+}
+.nav-dropdown-panel a:hover {
+    background: #f8fafc;
+    color: var(--primary);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 30s linear infinite;
+}
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
+
+/* Hero Slides Fade Transition */
+.hero-slide {
+    transition: opacity 0.8s ease-in-out;
+}
+
+/* Card Hover Lift Effect */
+.card-hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(11, 79, 159, 0.1), 0 8px 10px -6px rgba(11, 79, 159, 0.05);
+}
+
+/* Modal Fade Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* CMS admin sidebar on small screens */
+@media (max-width: 1023px) {
+    #cmsSidebar.cms-open { transform: translateX(0); }
+}
+
+/* Print Styles */
+@media print {
+    header, footer, .no-print, button {
+        display: none !important;
+    }
+    body {
+        background: #fff;
+        color: #000;
+    }
+    .print-container {
+        padding: 20px;
+    }
+}

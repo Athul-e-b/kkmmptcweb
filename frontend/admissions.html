@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admissions & Fee Calculator 2026-27 | KKM Model Polytechnic College Kallettumkara</title>
+    <meta name="description" content="Official Admissions Portal for KKMMPTC Kallettumkara under IHRD Kerala. Calculate semester fees, test eligibility, view seat matrix, and pre-register online.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#0B4F9F', dark: '#083B78', light: '#1B62B8' },
+                        secondary: { DEFAULT: '#D62828', dark: '#B01E1E' },
+                        accent: { DEFAULT: '#FFC107' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="antialiased bg-slate-50 text-slate-800">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="sticky top-0 z-40 glass-nav border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="index.html" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md">
+                        <i class="fa-solid fa-building-columns text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold text-primary tracking-wider uppercase">IHRD Govt. College</div>
+                        <h1 class="text-sm font-bold font-heading text-slate-900 group-hover:text-primary transition">KKM MODEL POLYTECHNIC COLLEGE KALLETTUMKARA</h1>
+                    </div>
+                </a>
+
+                <nav class="hidden md:flex items-center gap-2 lg:gap-4 text-xs font-semibold text-slate-700 shrink-0">
+                    <a href="index.html" class="hover:text-primary px-2 py-1.5">Home</a>
+                    <a href="departments.html" class="hover:text-primary px-2 py-1.5">Departments</a>
+                    <a href="admissions.html" class="text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-lg">Admissions</a>
+                    <a href="grievance.html" class="hover:text-primary px-2 py-1.5">Grievance</a>
+                    <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-primary transition"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
+                </nav>
+                <div class="flex items-center gap-2 md:hidden shrink-0">
+                    <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
+                    <button type="button" onclick="toggleMobileMenu()" class="p-2 text-slate-700" aria-label="Open menu"><i class="fa-solid fa-bars text-xl" id="menuIcon"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-sm font-medium">
+            <a href="index.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Home</a>
+            <a href="departments.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Departments &amp; Syllabus</a>
+            <a href="admissions.html" class="block px-3 py-2 rounded-md bg-primary/5 text-primary">Admissions &amp; Fees</a>
+            <a href="grievance.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Grievance Redressal</a>
+            <a href="admin.html" class="block px-3 py-2 rounded-md bg-slate-900 text-white text-center">Admin</a>
+        </div>
+    </header>
+
+    <!-- BANNER -->
+    <section class="bg-primary-dark text-white py-14">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <span class="bg-secondary text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Admission Session 2026-27</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold font-heading mt-2">Diploma Admissions, Fees & Eligibility Portal</h1>
+            <p class="text-slate-200 text-xs sm:text-sm max-w-2xl mt-2">
+                Admissions to 3-Year Diploma courses at KKMMPTC Kallettumkara are processed via Single Window System (<code class="bg-white/20 px-1">polyadmission.org</code>) and IHRD Management Quota.
+            </p>
+        </div>
+    </section>
+
+    <!-- CONTENT GRID -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+        
+        <!-- SECTION 1: SEAT MATRIX & ELIGIBILITY CHECKER -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-xl font-bold font-heading text-primary mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-ol"></i> Diploma Seat Matrix & Branch Codes
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50 text-slate-700 font-bold uppercase">
+                                <th class="py-3 px-3">Diploma Branch</th>
+                                <th class="py-3 px-3">Code</th>
+                                <th class="py-3 px-3">Duration</th>
+                                <th class="py-3 px-3 text-right">Intake</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                            <tr>
+                                <td class="py-3 px-3">Electronics Engineering</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">EL</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3">Computer Hardware Engineering</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">CM</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3">Bio-Medical Engineering</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">BM</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3">Computer Engineering</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">CT</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3">Robotic Process Automation</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">RPA</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3">Electrical & Electronics Engg.</td>
+                                <td class="py-3 px-3 font-mono font-bold text-primary">EEE</td>
+                                <td class="py-3 px-3">3 Years</td>
+                                <td class="py-3 px-3 text-right font-bold text-secondary">60 Seats</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ELIGIBILITY CHECKER WIDGET -->
+            <div class="lg:col-span-5 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-xl font-bold font-heading text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-user-check text-primary"></i> Instant Eligibility Test
+                </h2>
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Qualifying Examination Passed</label>
+                        <select id="eligQual" onchange="checkEligibility()" class="w-full px-3 py-2 rounded-lg border border-slate-300">
+                            <option value="sslc">SSLC / THSLC (10th Standard Pass)</option>
+                            <option value="plustwo">Plus Two Science / VHSE (12th Pass)</option>
+                            <option value="iti">2-Year ITI Passout</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="eligMath" checked onchange="checkEligibility()" class="rounded text-primary">
+                        <label for="eligMath" class="font-semibold text-slate-700">Passed Mathematics & Science Subjects</label>
+                    </div>
+                    
+                    <div id="eligResult" class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+                        <div class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-600 text-base"></i> Eligible for 3-Year Diploma (1st Year Entry)</div>
+                        <p class="mt-1">You satisfy SSLC/THSLC requirements for all 6 Engineering branches under Centralized Single Window Allotment.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SECTION 2: INTERACTIVE FEE CALCULATOR -->
+        <div id="calculator" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="max-w-2xl">
+                <span class="text-primary text-xs font-bold uppercase tracking-wider">Financial Planning</span>
+                <h2 class="text-2xl font-bold font-heading text-slate-900 mt-1 mb-2">Interactive Semester Fee Estimator</h2>
+                <p class="text-xs text-slate-600 mb-6">Estimate semester fee breakdown based on quota type and reservation category under IHRD & Kerala Govt rules.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                <div class="md:col-span-5 space-y-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Admission Quota Type</label>
+                        <select id="calcQuota" onchange="calculateFees()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                            <option value="regular">Government Regular Seat (Single Window Allotment)</option>
+                            <option value="ihrd">IHRD Management Quota Seat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Category / Reservation Status</label>
+                        <select id="calcCategory" onchange="calculateFees()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                            <option value="gen">General / Merit Category</option>
+                            <option value="sc_st">SC / ST / OEC (Full E-Grantz Waiver)</option>
+                            <option value="obc">OBC / SEBC Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="md:col-span-7 bg-slate-900 text-white p-6 rounded-2xl">
+                    <h3 class="font-bold font-heading text-accent text-sm mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Estimated Fee Breakup (Per Semester)</h3>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <span class="text-slate-400">Tuition Fee:</span>
+                            <div class="font-bold text-sm text-white" id="resTuition">₹ 15,000</div>
+                        </div>
+                        <div>
+                            <span class="text-slate-400">Special & Exam Fee:</span>
+                            <div class="font-bold text-sm text-white" id="resSpecial">₹ 2,500</div>
+                        </div>
+                        <div>
+                            <span class="text-slate-400">Refundable Caution Deposit:</span>
+                            <div class="font-bold text-sm text-white" id="resCaution">₹ 1,000</div>
+                        </div>
+                        <div>
+                            <span class="text-slate-400">PTA & Welfare Fund:</span>
+                            <div class="font-bold text-sm text-white" id="resPTA">₹ 1,500</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300">Total Net Payable:</span>
+                        <span class="text-xl font-extrabold font-heading text-accent" id="resTotal">₹ 20,000 / Sem</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: ONLINE PRE-REGISTRATION FORM -->
+        <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
+            <div class="text-center mb-6">
+                <span class="bg-secondary text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">Pre-Registration</span>
+                <h2 class="text-2xl font-bold font-heading text-slate-900 mt-2">Submit Pre-Registration Inquiry</h2>
+                <p class="text-xs text-slate-600 mt-1">Submit applicant information for direct counseling and allotment status notification.</p>
+            </div>
+
+            <form onsubmit="handlePreRegisterSubmit(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Student Full Name *</label>
+                        <input type="text" id="regName" required placeholder="Enter student full name" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Mobile Phone Number *</label>
+                        <input type="tel" id="regPhone" required placeholder="10-digit mobile number" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Email Address</label>
+                        <input type="email" id="regEmail" placeholder="name@example.com" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Preferred Diploma Branch *</label>
+                        <select id="regDept" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-primary">
+                            <option value="Bio-Medical Engineering">Bio-Medical Engineering (BM)</option>
+                            <option value="Electronics Engineering">Electronics Engineering (EL)</option>
+                            <option value="Computer Hardware Engineering">Computer Hardware Engineering (CM)</option>
+                            <option value="Computer Engineering">Computer Engineering (CT)</option>
+                            <option value="Robotic Process Automation">Robotic Process Automation (RPA)</option>
+                            <option value="Electrical & Electronics">Electrical & Electronics Engg. (EEE)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Qualifying Exam</label>
+                        <select id="regQual" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                            <option value="SSLC">SSLC / THSLC</option>
+                            <option value="Plus Two Science">Plus Two Science / VHSE</option>
+                            <option value="ITI">2-Year ITI Holder</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Percentage / GPA Marks</label>
+                        <input type="text" id="regMarks" placeholder="e.g. 92% or Full A+" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-secondary hover:bg-secondary-dark text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md">
+                    Submit Pre-Registration Inquiry
+                </button>
+            </form>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 py-10 border-t border-slate-800 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4">
+            &copy; 2026 K. Karunakaran Memorial Model Polytechnic College, Kallettumkara (IHRD Govt. Institution).
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/admissions.js"></script>
+    <script src="js/chatbot.js"></script>
+</body>
+</html>

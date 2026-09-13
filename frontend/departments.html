@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Departments & Syllabus | KKM Model Polytechnic College Kallettumkara</title>
+    <meta name="description" content="Explore 3-Year Diploma Syllabi for Electronics, Bio-Medical, Computer Hardware, Computer Engineering, Robotic Process Automation, and Electrical & Electronics at KKMMPTC Kallettumkara.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#0B4F9F', dark: '#083B78', light: '#1B62B8' },
+                        secondary: { DEFAULT: '#D62828', dark: '#B01E1E' },
+                        accent: { DEFAULT: '#FFC107' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="antialiased bg-slate-50 text-slate-800">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="sticky top-0 z-40 glass-nav border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="index.html" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md">
+                        <i class="fa-solid fa-building-columns text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold text-primary tracking-wider uppercase">IHRD Govt. College</div>
+                        <h1 class="text-sm font-bold font-heading text-slate-900 group-hover:text-primary transition">KKM MODEL POLYTECHNIC COLLEGE KALLETTUMKARA</h1>
+                    </div>
+                </a>
+
+                <nav class="hidden md:flex items-center gap-2 lg:gap-4 text-xs font-semibold text-slate-700 shrink-0">
+                    <a href="index.html" class="hover:text-primary px-2 py-1.5">Home</a>
+                    <a href="departments.html" class="text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-lg">Departments</a>
+                    <a href="admissions.html" class="hover:text-primary px-2 py-1.5">Admissions</a>
+                    <a href="grievance.html" class="hover:text-primary px-2 py-1.5">Grievance</a>
+                    <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-primary transition"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
+                </nav>
+                <div class="flex items-center gap-2 md:hidden shrink-0">
+                    <a href="admin.html" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-user-gear mr-1"></i> Admin</a>
+                    <button type="button" onclick="toggleMobileMenu()" class="p-2 text-slate-700" aria-label="Open menu"><i class="fa-solid fa-bars text-xl" id="menuIcon"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-sm font-medium">
+            <a href="index.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Home</a>
+            <a href="departments.html" class="block px-3 py-2 rounded-md bg-primary/5 text-primary">Departments &amp; Syllabus</a>
+            <a href="admissions.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Admissions &amp; Fees</a>
+            <a href="grievance.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Grievance Redressal</a>
+            <a href="admin.html" class="block px-3 py-2 rounded-md bg-slate-900 text-white text-center">Admin</a>
+        </div>
+    </header>
+
+    <!-- PAGE HERO BANNER -->
+    <section class="bg-primary-dark text-white py-14">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <span class="bg-accent text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Academic Offerings</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold font-heading mt-2">Engineering Departments & Curriculum Syllabus</h1>
+            <p class="text-slate-200 text-xs sm:text-sm max-w-2xl mt-2">
+                Diploma branches approved by AICTE and affiliated to SBTE Kerala. Select a department to view HOD, faculty, vision, mission and course details.
+            </p>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT - DEPARTMENTS DETAIL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16" id="deptContainer">
+        <!-- RENDERED DYNAMICALLY FROM DATA.JS -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 py-10 border-t border-slate-800 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4">
+            &copy; 2026 K. Karunakaran Memorial Model Polytechnic College, Kallettumkara (IHRD Govt. Institution).
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/departments-page.js"></script>
+    <script src="js/chatbot.js"></script>
+</body>
+</html>

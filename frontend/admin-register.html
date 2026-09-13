@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Registration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { primary: { DEFAULT: '#0B4F9F', dark: '#083B78' }, secondary: { DEFAULT: '#D62828' } },
+            fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] }
+        } } };
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="antialiased bg-slate-100 min-h-screen">
+    <main class="max-w-md mx-auto px-4 py-12">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <h1 class="font-heading font-bold text-xl text-slate-900 mb-1">Admin Registration</h1>
+            <p class="text-xs text-slate-500 mb-6">One-time setup. Phone number is the admin user ID.</p>
+            <form id="regForm" class="space-y-3 text-xs" autocomplete="off">
+                <label class="block font-semibold text-slate-700">Full Name
+                    <input name="name" required minlength="2" class="mt-1 w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" autocomplete="name">
+                </label>
+                <label class="block font-semibold text-slate-700">Email
+                    <input name="email" type="email" required class="mt-1 w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" autocomplete="email">
+                </label>
+                <label class="block font-semibold text-slate-700">Phone Number
+                    <input name="phone" required inputmode="numeric" maxlength="15" class="mt-1 w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" autocomplete="tel" placeholder="10-digit mobile">
+                </label>
+                <label class="block font-semibold text-slate-700">Password
+                    <input id="regPassword" name="password" type="password" required class="mt-1 w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" autocomplete="new-password">
+                </label>
+                <div id="pwRules" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] space-y-1">
+                    <p class="font-bold text-slate-700 mb-1">Password requirements</p>
+                    <p data-rule="len">✗ At least 8 characters</p>
+                    <p data-rule="upper">✗ Uppercase letter</p>
+                    <p data-rule="lower">✗ Lowercase letter</p>
+                    <p data-rule="num">✗ Number</p>
+                    <p data-rule="spec">✗ Special character</p>
+                    <p id="pwSummary" class="font-semibold text-secondary pt-1">Password is not strong enough</p>
+                </div>
+                <label class="block font-semibold text-slate-700">Confirm Password
+                    <input id="regConfirm" name="confirm_password" type="password" required class="mt-1 w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" autocomplete="new-password">
+                </label>
+                <p id="regError" class="text-secondary font-semibold hidden"></p>
+                <button id="regSubmit" type="submit" disabled class="w-full bg-primary text-white font-bold py-2.5 rounded-lg text-sm disabled:opacity-40">Register</button>
+            </form>
+        </div>
+    </main>
+
+    <div id="otpModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <h2 class="font-heading font-bold text-lg text-slate-900">Verify Registration</h2>
+            <p class="text-xs text-slate-500 mt-1 mb-4">Enter OTP</p>
+            <input id="otpInput" maxlength="8" inputmode="numeric" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-center text-lg tracking-widest mb-3">
+            <p id="otpError" class="text-secondary text-xs font-semibold hidden mb-2"></p>
+            <button type="button" id="otpVerify" class="w-full bg-primary text-white font-bold py-2.5 rounded-lg text-sm">Verify</button>
+            <p id="devOtpHint" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+                Development OTP: 1234<br>
+                <span class="text-slate-500">DEVELOPMENT ONLY — replace with real email/SMS OTP before production.</span>
+            </p>
+        </div>
+    </div>
+
+    <script src="js/admin-register.js"></script>
+</body>
+</html>

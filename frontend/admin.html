@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KKMMPTC Admin CMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: {
+                    primary: { DEFAULT: '#0B4F9F', dark: '#083B78', light: '#1B62B8' },
+                    secondary: { DEFAULT: '#D62828', dark: '#B01E1E' },
+                    accent: { DEFAULT: '#FFC107' }
+                },
+                fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] }
+            } }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="antialiased bg-slate-100 text-slate-800 min-h-screen">
+
+    <header class="bg-slate-900 text-white border-b border-slate-800">
+        <div class="px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button type="button" id="cmsMenuBtn" class="lg:hidden text-white" onclick="toggleCmsSidebar()" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+                <a href="index.html" class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center"><i class="fa-solid fa-user-gear"></i></div>
+                    <div>
+                        <h1 class="font-bold font-heading text-sm">KKMMPTC Admin</h1>
+                        <p class="text-[10px] text-slate-400">College CMS</p>
+                    </div>
+                </a>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+                <a href="index.html" class="text-slate-300 hover:text-white">Public site</a>
+                <a href="department-admin.html" class="text-slate-300 hover:text-white hidden sm:inline">Classic department console</a>
+                <button type="button" id="logoutBtn" onclick="adminLogout()" class="hidden text-slate-300 hover:text-white">Log out</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="loginPanel" class="max-w-sm mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mt-16">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4"><i class="fa-solid fa-lock text-xl"></i></div>
+        <h2 class="font-bold font-heading text-lg text-slate-900 mb-1">Admin Sign-In</h2>
+        <p class="text-xs text-slate-500 mb-5">Manage college content, departments, events and gallery.</p>
+        <form onsubmit="adminLogin(event)">
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">Phone Number</label>
+            <input type="text" id="adminPhoneInput" required inputmode="numeric" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-primary mb-3" autocomplete="username">
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">Password</label>
+            <input type="password" id="adminPasswordInput" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-primary mb-3" autocomplete="current-password">
+            <div id="loginError" class="text-secondary text-xs mb-3 hidden"></div>
+            <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2.5 rounded-lg text-sm">Sign In</button>
+        </form>
+    </div>
+
+    <div id="adminWorkspace" class="hidden flex min-h-[calc(100vh-4rem)]">
+        <aside id="cmsSidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 pt-16 lg:pt-4 px-3 transform -translate-x-full lg:translate-x-0 transition">
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 px-3 mb-2">Content</p>
+            <nav class="space-y-0.5 text-xs font-semibold">
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg bg-primary text-white" data-section="dashboard">Dashboard</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="college">College Information</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="principal">Principal</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="departments">Departments</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="staff">HOD &amp; Faculty</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="events">Events</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="gallery">Gallery</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="notices">Notices</button>
+                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="admissions">Admissions</button>
+            </nav>
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 px-3 mt-5 mb-2">Communication</p>
+            <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-xs font-semibold" data-section="grievances">Grievances</button>
+        </aside>
+        <div id="cmsBackdrop" class="hidden lg:hidden fixed inset-0 bg-black/40 z-20" onclick="toggleCmsSidebar()"></div>
+
+        <main class="flex-1 p-4 sm:p-6 space-y-4 overflow-x-auto">
+            <div id="cmsToast" class="hidden fixed top-20 right-4 z-50 text-xs font-semibold px-4 py-2 rounded-lg shadow"></div>
+
+            <section data-cms="dashboard" class="cms-section">
+                <h2 class="font-heading font-bold text-lg mb-4">Dashboard Overview</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" id="cmsStats"></div>
+            </section>
+
+            <section data-cms="college" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-lg mb-4">College Information</h2>
+                <form id="collegeForm" class="bg-white p-6 rounded-2xl border border-slate-200 grid sm:grid-cols-2 gap-3 text-xs"></form>
+            </section>
+
+            <section data-cms="principal" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-lg mb-4">Principal</h2>
+                <form id="cmsPrincipalForm" class="bg-white p-6 rounded-2xl border border-slate-200 grid sm:grid-cols-2 gap-4 text-xs" enctype="multipart/form-data"></form>
+            </section>
+
+            <section data-cms="departments" class="cms-section hidden">
+                <div class="mb-4">
+                    <h2 class="font-heading font-bold text-lg">Departments</h2>
+                    <p class="text-xs text-slate-500 mt-1">The six existing branches can be edited. New departments cannot be added.</p>
+                </div>
+                <div id="cmsDeptList" class="grid md:grid-cols-2 gap-3"></div>
+                <form id="cmsDeptForm" class="hidden bg-white p-6 rounded-2xl border border-slate-200 mt-4 grid sm:grid-cols-2 gap-3 text-xs"></form>
+            </section>
+
+            <section data-cms="staff" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-lg mb-1">HOD &amp; Faculty</h2>
+                <p class="text-xs text-slate-500 mb-4">HOD is managed separately from faculty. Each branch has one Head of Department.</p>
+                <div id="cmsHodPanel"></div>
+                <div id="cmsFacultyPanel" class="mt-8"></div>
+            </section>
+
+            <section data-cms="events" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-lg mb-4">Events</h2>
+                <form id="cmsEventForm" class="bg-white p-4 rounded-2xl border grid sm:grid-cols-2 gap-3 text-xs mb-4" enctype="multipart/form-data"></form>
+                <div id="cmsEventList" class="space-y-2"></div>
+            </section>
+
+            <section data-cms="gallery" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-lg mb-4">Gallery Management</h2>
+                <form id="cmsGalleryForm" class="bg-white p-4 rounded-2xl border grid sm:grid-cols-2 gap-3 text-xs mb-4" enctype="multipart/form-data"></form>
+                <div class="overflow-x-auto bg-white rounded-2xl border">
+                    <table class="w-full text-xs"><thead class="bg-slate-50"><tr><th class="p-2 text-left">Media</th><th class="p-2 text-left">Title</th><th class="p-2">Type</th><th class="p-2">Category</th><th class="p-2"></th></tr></thead><tbody id="cmsGalleryTable"></tbody></table>
+                </div>
+            </section>
+
+            <section data-cms="notices" class="cms-section hidden">
+                <h2 class="font-heading font-bold text-sm font-heading mb-4"><i class="fa-solid fa-bullhorn text-primary"></i> Notices</h2>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs">
+                        <div class="md:col-span-5">
+                            <label class="block font-semibold text-slate-700 mb-1">Notice Title *</label>
+                            <input type="text" id="adminNoticeTitle" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block font-semibold text-slate-700 mb-1">Category</label>
+                            <select id="adminNoticeCat" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300">
+                                <option value="Admissions">Admissions</option>
+                                <option value="Examinations">Examinations</option>
+                                <option value="Tender">Tender Notice</option>
+                                <option value="Placement">Placement Drive</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-4 flex items-end">
+                            <button type="button" onclick="adminPublishNotice()" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2.5 rounded-lg">Publish Notice</button>
+                        </div>
+                        <div class="md:col-span-12">
+                            <textarea id="adminNoticeDesc" rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300" placeholder="Notice details"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div id="cmsNoticeList" class="mt-4 space-y-2 text-xs"></div>
+            </section>
+
+            <section data-cms="admissions" class="cms-section hidden">
+                <div class="bg-white rounded-2xl border p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-sm font-heading">Pre-Admission Applicant Queue</h2>
+                        <button type="button" onclick="renderAdminAppQueue()" class="text-xs font-semibold text-primary">Refresh</button>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-2">Pending: <span id="adminPendingCount">0</span> · Notices: <span id="adminCircularsCount">0</span></p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 font-bold"><tr><th class="p-3">App ID</th><th class="p-3">Name</th><th class="p-3">Branch</th><th class="p-3">Phone</th><th class="p-3">Date</th><th class="p-3">Status</th><th class="p-3"></th></tr></thead>
+                            <tbody id="adminAppTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section data-cms="grievances" class="cms-section hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <h2 class="font-heading font-bold text-lg">Grievances</h2>
+                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                        <span class="font-semibold">Status:</span>
+                        <select id="grievanceStatusFilter" onchange="loadGrievances()" class="px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs">
+                            <option value="">All</option>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="grievanceStatusSummary" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4"></div>
+                <div id="grievancesList" class="space-y-3"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/cms-admin.js"></script>
+</body>
+</html>
