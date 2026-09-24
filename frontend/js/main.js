@@ -77,7 +77,7 @@ const heroTexts = [
         State-of-the-Art Technical Labs
     </h1>
     <p class="text-slate-200 text-base sm:text-lg mb-8 leading-relaxed font-normal">
-        Specialized training in Bio-Medical Instrumentation, Robotic Process Automation, Hardware Troubleshooting, and Smart Electronics.
+        Specialized training in Bio-Medical Instrumentation, Robotic Process Automation, Computer Science and Technology, and Smart Electronics.
     </p>
     `
 ];
@@ -251,7 +251,8 @@ function openDeptModal(code) {
     if (!container) return;
     container.innerHTML = `<p class="text-xs text-slate-400">Loading…</p>`;
     toggleModal('deptModal');
-    fetch(`/api/departments/${encodeURIComponent(String(code).toUpperCase())}`)
+    const resolved = String(code || '').toUpperCase() === 'CM' ? 'CG' : String(code).toUpperCase();
+    fetch(`/api/departments/${encodeURIComponent(resolved)}`)
         .then((r) => r.ok ? r.json() : Promise.reject())
         .then((d) => {
             const hod = d.hod;
@@ -443,7 +444,7 @@ function executeGlobalSearch() {
     const database = [
         { text: 'Bio-Medical Engineering Diploma Course Details & Syllabus', link: 'departments.html#dept-bm' },
         { text: 'Electronics Engineering 3-Year Regular Program', link: 'departments.html#dept-el' },
-        { text: 'Computer Hardware Engineering Diploma', link: 'departments.html#dept-cm' },
+        { text: 'Computer Science and Technology Diploma', link: 'departments.html?department=CG' },
         { text: 'Computer Engineering Diploma Program', link: 'departments.html#dept-ct' },
         { text: 'Robotic Process Automation (RPA) Diploma', link: 'departments.html#dept-rpa' },
         { text: 'Electrical & Electronics Engineering (EEE) Program', link: 'departments.html#dept-eee' },

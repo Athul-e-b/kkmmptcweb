@@ -8,7 +8,7 @@ db = SessionLocal()
 
 DEPARTMENTS = [
     ("EL", "Electronics Engineering"),
-    ("CM", "Computer Hardware Engineering"),
+    ("CG", "Computer Science and Technology"),
     ("BM", "Bio-Medical Engineering"),
     ("CT", "Computer Engineering"),
     ("RPA", "Robotic Process Automation"),
@@ -21,6 +21,16 @@ if db.query(models.Department).count() == 0:
         db.add(models.Department(code=code, name=name))
     db.commit()
 
+# Keep the original Computer Hardware Engineering row (id, staff, images)
+# and only change its code/name — never insert a second department.
+legacy_cm = db.query(models.Department).filter(models.Department.code == "CM").first()
+existing_cg = db.query(models.Department).filter(models.Department.code == "CG").first()
+if legacy_cm and not existing_cg:
+    print("Renaming department CM → CG (Computer Science and Technology) in place...")
+    legacy_cm.code = "CG"
+    legacy_cm.name = "Computer Science and Technology"
+    db.commit()
+
 depts = {d.code: d for d in db.query(models.Department).all()}
 
 if db.query(models.Staff).count() == 0:
@@ -29,7 +39,7 @@ if db.query(models.Staff).count() == 0:
         models.Staff(department_id=depts["EL"].id, name="Er. Saji Varghese", role="HOD",
                      designation="HOD & Vice Principal", qualification="M.Tech Microelectronics (NIT Calicut)",
                      email="saji.v@ihrd.ac.in"),
-        models.Staff(department_id=depts["CM"].id, name="Er. Anita Kumari", role="HOD",
+        models.Staff(department_id=depts["CG"].id, name="Er. Anita Kumari", role="HOD",
                      designation="HOD & Associate Professor", qualification="M.Tech Computer Science (CUSAT)",
                      email="anita.k@ihrd.ac.in"),
         models.Staff(department_id=depts["BM"].id, name="Er. Ramesh K.", role="HOD",
@@ -89,16 +99,16 @@ DEPT_DETAILS = {
         "vision": "To be a centre of excellence in electronics education producing industry-ready diploma engineers.",
         "mission": "Provide hands-on training in embedded systems, communication and PCB fabrication with strong ethical values.",
     },
-    "CM": {
-        "description": "A specialized diploma offering in-depth mastery of PC hardware architecture, chip-level troubleshooting, motherboard servicing, server maintenance, enterprise networking, and hardware IoT integration.",
-        "course_name": "Diploma in Computer Hardware Engineering",
+    "CG": {
+        "description": "Computer Science and Technology focuses on programming, software development, computer systems, databases, networking, web technologies, and modern computing technologies.",
+        "course_name": "Diploma in Computer Science and Technology",
         "duration": "3 Years (6 Semesters)", "intake": 60, "email": "cm.mptmala@ihrd.ac.in",
         "image_url": "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&q=80&w=800",
-        "labs_text": "Hardware Assembly & Maintenance Lab\nChip-Level Servicing Workstation\nComputer Networking Lab\nLinux Server Admin Lab",
-        "career_text": "Hardware & Network Administrator\nChip-Level Repair Specialist\nSystem Support Engineer",
+        "labs_text": "Programming & Software Development Lab\nDatabase Systems Lab\nComputer Networking Lab\nWeb Technologies Lab",
+        "career_text": "Junior Software Developer\nWeb Application Developer\nDatabase Support Engineer\nNetwork Support Technician",
         "eligibility": "SSLC / THSLC with Mathematics, Science and English. Lateral entry available.",
-        "vision": "Build skilled hardware and networking professionals for Kerala’s IT infrastructure.",
-        "mission": "Train students in PC architecture, networking and chip-level servicing through live workshops.",
+        "vision": "Produce diploma graduates skilled in programming, software systems and modern computing technologies.",
+        "mission": "Deliver practical training in programming, databases, networking and web technologies through labs and projects.",
     },
     "BM": {
         "description": "Unique program focusing on medical electronic equipment, hospital diagnostic devices, ECG/EEG systems, ICU ventilators, dialysis units, medical imaging, and clinical safety standards.",
@@ -157,6 +167,61 @@ for code, details in DEPT_DETAILS.items():
     if not d.phone:
         d.phone = "0480-2720746"
     d.is_active = 1 if d.is_active is None else d.is_active
+db.commit()
+
+def _legacy_hardware_content(dept):
+    blob = " ".join(
+        filter(
+            None,
+            [
+                dept.name,
+                dept.description,
+                dept.course_name,
+                dept.labs_text,
+                dept.career_text,
+                dept.vision,
+                dept.mission,
+            ],
+        )
+    ).lower()
+    return any(
+        marker in blob
+        for marker in (
+            "computer hardware",
+            "chip-level",
+            "motherboard",
+            "pc hardware architecture",
+            "hardware assembling",
+        )
+    )
+
+cg = depts.get("CG")
+if cg:
+    details = DEPT_DETAILS["CG"]
+    cg.name = "Computer Science and Technology"
+    cg.code = "CG"
+    if cg.intake in (None, 0):
+        cg.intake = 60
+    if _legacy_hardware_content(cg):
+        print("Updating Computer Science and Technology syllabus text…")
+        for key in (
+            "description",
+            "course_name",
+            "labs_text",
+            "career_text",
+            "vision",
+            "mission",
+            "duration",
+            "eligibility",
+        ):
+            setattr(cg, key, details[key])
+        cg.intake = 60
+    db.commit()
+
+for app in db.query(models.Application).all():
+    dept_name = (app.dept or "").strip()
+    if dept_name in ("Computer Hardware Engineering", "CM") or "hardware engineering" in dept_name.lower():
+        app.dept = "Computer Science and Technology"
 db.commit()
 
 if db.query(models.CollegeInfo).count() == 0:

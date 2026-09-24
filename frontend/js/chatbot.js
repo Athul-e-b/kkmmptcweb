@@ -26,9 +26,9 @@
             actions: [{ text: "View EL Syllabus", link: "departments.html#dept-el" }]
         },
         {
-            keywords: ["hardware", "cm", "repair", "networking", "chip"],
-            response: "💻 **Computer Hardware Engineering (CM)**: Specialized in PC hardware architecture, chip-level troubleshooting, motherboard repair, and enterprise networking.",
-            actions: [{ text: "View CM Syllabus", link: "departments.html#dept-cm" }]
+            keywords: ["computer science", "cg", "cm", "hardware", "web technologies", "database"],
+            response: "💻 **Computer Science and Technology (CG)**: 3-Year Diploma with 60 seats. Focuses on programming, software development, computer systems, databases, networking, web technologies, and modern computing technologies.",
+            actions: [{ text: "View CG Syllabus", link: "departments.html?department=CG" }]
         },
         {
             keywords: ["computer", "ct", "software", "python", "java", "coding"],

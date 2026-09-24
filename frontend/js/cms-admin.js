@@ -225,7 +225,7 @@ function bindDeptForm(form, d) {
 }
 
 function deptOptions(selected) {
-    return cmsDepts.map((d) => `<option value="${d.id}" ${String(d.id) === String(selected) ? 'selected' : ''}>${escapeHTML(d.name)}</option>`).join('');
+    return cmsDepts.map((d) => `<option value="${d.id}" ${String(d.id) === String(selected) ? 'selected' : ''}>${escapeHTML(d.name)} (${escapeHTML(d.code)})</option>`).join('');
 }
 
 async function cmsStaffUI() {

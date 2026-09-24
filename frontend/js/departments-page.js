@@ -167,7 +167,12 @@ async function loadDepartmentsPage() {
     const container = document.getElementById('deptContainer');
     if (!container) return;
     const params = new URLSearchParams(window.location.search);
-    const code = (params.get('department') || '').toUpperCase();
+    let code = (params.get('department') || '').toUpperCase();
+    if (!code && window.location.hash) {
+        const hashMatch = window.location.hash.match(/^#dept-([a-z0-9]+)$/i);
+        if (hashMatch) code = hashMatch[1].toUpperCase();
+    }
+    if (code === 'CM') code = 'CG';
     renderLoadingState(container, 'Loading departments…');
     try {
         if (code) {

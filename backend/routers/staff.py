@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from database import get_db
+from dept_codes import canonical_dept_code
 from file_storage import IMAGE_EXT, save_upload, delete_local_file
 import models, schemas, auth
 
@@ -32,7 +33,7 @@ def _ensure_single_hod(db: Session, department_id: int, keep_id: Optional[int] =
 def list_staff(department: Optional[str] = None, db: Session = Depends(get_db)):
     q = db.query(models.Staff)
     if department:
-        q = q.join(models.Department).filter(models.Department.code == department)
+        q = q.join(models.Department).filter(models.Department.code == canonical_dept_code(department))
     return q.order_by(models.Staff.role.desc(), models.Staff.name).all()
 
 

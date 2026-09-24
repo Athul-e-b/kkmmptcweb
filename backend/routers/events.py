@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from database import get_db
+from dept_codes import canonical_dept_code
 from file_storage import IMAGE_EXT, save_upload, delete_local_file
 import models, schemas, auth
 
@@ -20,7 +21,7 @@ def list_events(
 ):
     q = db.query(models.Event)
     if department:
-        q = q.join(models.Department).filter(models.Department.code == department)
+        q = q.join(models.Department).filter(models.Department.code == canonical_dept_code(department))
     if status == "all":
         pass
     elif status:

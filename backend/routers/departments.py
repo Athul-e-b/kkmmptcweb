@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
+from dept_codes import canonical_dept_code
 from file_storage import IMAGE_EXT, save_upload, delete_local_file
 import models, schemas, auth
 
@@ -31,10 +32,11 @@ def list_departments(include_inactive: bool = False, db: Session = Depends(get_d
 
 @router.get("/{code}", response_model=schemas.DepartmentOut)
 def get_department(code: str, db: Session = Depends(get_db)):
+    resolved = canonical_dept_code(code)
     dept = (
         db.query(models.Department)
         .options(joinedload(models.Department.staff))
-        .filter(models.Department.code == code.upper())
+        .filter(models.Department.code == resolved)
         .first()
     )
     if not dept:

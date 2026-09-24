@@ -51,34 +51,34 @@ const KKM_DATA = {
                 { sem: "Semester 6", subjects: ["Optoelectronics & Optical Communication", "Consumer Electronics", "Robotics Fundamentals", "Major Project & Seminar", "Comprehensive Viva-Voce"] }
             ]
         },
-        cm: {
-            code: "CM",
-            name: "Computer Hardware Engineering",
+        cg: {
+            code: "CG",
+            name: "Computer Science and Technology",
             intake: 60,
             duration: "3 Years (6 Semesters)",
             hod: "Er. Anita Kumari (M.Tech in Computer Science)",
             hodEmail: "cm.mptmala@ihrd.ac.in",
-            overview: "A specialized diploma offering in-depth mastery of PC hardware architecture, chip-level troubleshooting, motherboard servicing, server maintenance, enterprise networking (Cisco/CCNA basics), and hardware IoT integration.",
+            overview: "Computer Science and Technology focuses on programming, software development, computer systems, databases, networking, web technologies, and modern computing technologies.",
             labs: [
-                "Hardware Assembly & Maintenance Lab",
-                "Chip-Level Servicing & Soldering Workstation",
-                "Computer Networking & Router Configuration Lab",
-                "Operating Systems & Linux Server Admin Lab"
+                "Programming & Software Development Lab",
+                "Database Systems Lab",
+                "Computer Networking Lab",
+                "Web Technologies Lab"
             ],
             careerProspects: [
-                "Hardware & Network Administrator",
-                "Chip-Level Repair Specialist",
-                "System Support Engineer (TCS, Wipro, HCL)",
-                "Network Security Associate",
-                "IT Infrastructure Consultant"
+                "Junior Software Developer",
+                "Web Application Developer",
+                "Database Support Engineer",
+                "Network Support Technician",
+                "IT Support / Systems Associate"
             ],
             semesterCurriculum: [
-                { sem: "Semester 1", subjects: ["Communication Skills in English", "Engineering Mathematics I", "Engineering Physics I", "Engineering Chemistry I", "Computer Hardware Fundamentals", "Basic Electrical & Electronics Lab"] },
-                { sem: "Semester 2", subjects: ["Engineering Mathematics II", "Applied Physics", "C Programming Fundamentals", "Computer Organization & Architecture", "C Programming Lab", "Hardware Assembling Lab"] },
-                { sem: "Semester 3", subjects: ["Data Structures using C++", "Digital Computer Fundamentals", "System Maintenance & Troubleshooting", "Data Structures Lab", "System Maintenance Lab"] },
-                { sem: "Semester 4", subjects: ["Microprocessors (8086 / x86)", "Computer Networks & Protocols", "Database Management Systems", "Microprocessor Lab", "Networking Lab", "SQL Lab"] },
-                { sem: "Semester 5", subjects: ["Laptop & Smart Device Maintenance", "Linux Server Administration", "Network Security Fundamentals", "Chip-Level Servicing Lab", "Linux Server Lab", "Mini Project"] },
-                { sem: "Semester 6", subjects: ["IoT Hardware Architecture", "Cloud Infrastructure Fundamentals", "Industrial Training", "Major Project & Seminar", "Comprehensive Viva"] }
+                { sem: "Semester 1", subjects: ["Communication Skills in English", "Engineering Mathematics I", "Engineering Physics I", "Engineering Chemistry I", "Introduction to Computing", "Programming Fundamentals Lab"] },
+                { sem: "Semester 2", subjects: ["Engineering Mathematics II", "Applied Physics", "Programming in C", "Computer Organization & Architecture", "C Programming Lab", "IT Workshop"] },
+                { sem: "Semester 3", subjects: ["Data Structures using C++", "Database Management Systems", "Computer Networks", "Data Structures Lab", "DBMS Lab"] },
+                { sem: "Semester 4", subjects: ["Object Oriented Programming", "Web Technologies", "Operating Systems", "Java / OOP Lab", "Web Design Lab"] },
+                { sem: "Semester 5", subjects: ["Software Engineering", "Python Programming", "Network Administration", "Python Lab", "Mini Project"] },
+                { sem: "Semester 6", subjects: ["Cloud & Modern Computing Technologies", "Mobile / Web Application Development", "Industrial Training", "Major Project & Seminar", "Comprehensive Viva"] }
             ]
         },
         bm: {
@@ -205,7 +205,7 @@ const KKM_DATA = {
 
     faculty: [
         { name: "Er. Saji Varghese", dept: "Electronics Engineering", role: "HOD & Vice Principal", qual: "M.Tech Microelectronics (NIT Calicut)", exp: "24 Years", email: "saji.v@ihrd.ac.in" },
-        { name: "Er. Anita Kumari", dept: "Computer Hardware Engineering", role: "HOD & Associate Professor", qual: "M.Tech Computer Science (CUSAT)", exp: "20 Years", email: "anita.k@ihrd.ac.in" },
+        { name: "Er. Anita Kumari", dept: "Computer Science and Technology", role: "HOD & Associate Professor", qual: "M.Tech Computer Science (CUSAT)", exp: "20 Years", email: "anita.k@ihrd.ac.in" },
         { name: "Er. Ramesh K.", dept: "Bio-Medical Engineering", role: "HOD & Senior Lecturer", qual: "M.Tech Biomedical Instrument. (IIT Madras)", exp: "18 Years", email: "ramesh.k@ihrd.ac.in" },
         { name: "Er. Deepa Nair", dept: "Computer Engineering", role: "HOD & Senior Lecturer", qual: "M.Tech Software Engineering (VTU)", exp: "16 Years", email: "deepa.nair@ihrd.ac.in" },
         { name: "Er. Vinod Kumar", dept: "Robotic Process Automation", role: "HOD & Assistant Professor", qual: "M.Tech Robotics (Amrita)", exp: "14 Years", email: "vinod.kumar@ihrd.ac.in" },
@@ -251,7 +251,7 @@ const KKM_DATA = {
         { title: "Anti-Ragging Student & Parent Undertaking Form", cat: "forms", size: "512 KB", ext: "PDF" },
         { title: "Curriculum Syllabus - Electronics Engineering (Rev 2021)", cat: "syllabus", size: "3.8 MB", ext: "PDF" },
         { title: "Curriculum Syllabus - Bio-Medical Engineering (Rev 2021)", cat: "syllabus", size: "3.5 MB", ext: "PDF" },
-        { title: "Curriculum Syllabus - Computer Hardware Engg. (Rev 2021)", cat: "syllabus", size: "3.2 MB", ext: "PDF" },
+        { title: "Curriculum Syllabus - Computer Science and Technology (Rev 2021)", cat: "syllabus", size: "3.2 MB", ext: "PDF" },
         { title: "Curriculum Syllabus - Computer Engineering (Rev 2021)", cat: "syllabus", size: "3.0 MB", ext: "PDF" },
         { title: "Curriculum Syllabus - Robotic Process Automation (Rev 2021)", cat: "syllabus", size: "3.9 MB", ext: "PDF" },
         { title: "Curriculum Syllabus - Electrical & Electronics Engg. (Rev 2021)", cat: "syllabus", size: "3.4 MB", ext: "PDF" }
