@@ -11,8 +11,8 @@ function hodBlock(d) {
         return `<p class="text-xs text-slate-400 mt-3">HOD details will appear here once published.</p>`;
     }
     const photo = hod.photo_url
-        ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-20 h-20 rounded-full object-cover mx-auto border-4 border-accent shadow-lg">`
-        : `<div class="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center font-bold mx-auto text-2xl border-4 border-accent">${escapeHTML(hod.name.charAt(0))}</div>`;
+        ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-accent shadow-lg">`
+        : `<div class="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center font-bold mx-auto text-2xl border-4 border-accent">${escapeHTML(hod.name.charAt(0))}</div>`;
     return `
         <div class="text-center mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4">
             <p class="text-[10px] font-bold uppercase tracking-wider text-primary">★ Head of Department</p>
@@ -67,7 +67,7 @@ function detailHTML(d, staff, events, gallery) {
 
                 ${hod ? `
                 <section class="mt-8 bg-gradient-to-r from-primary to-primary-dark text-white rounded-2xl p-5 sm:p-6 grid sm:grid-cols-[auto,1fr] gap-5 items-center shadow-lg">
-                    ${hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-32 h-32 rounded-full object-cover border-4 border-accent shadow-xl">` : `<div class="w-32 h-32 rounded-full bg-white/15 text-white flex items-center justify-center text-4xl font-bold border-4 border-accent">${escapeHTML(hod.name.charAt(0))}</div>`}
+                    ${hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-36 h-36 rounded-full object-cover border-4 border-accent shadow-xl">` : `<div class="w-36 h-36 rounded-full bg-white/15 text-white flex items-center justify-center text-4xl font-bold border-4 border-accent">${escapeHTML(hod.name.charAt(0))}</div>`}
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-accent">★ Head of Department</p>
                         <h3 class="font-bold font-heading text-2xl mt-1">${escapeHTML(hod.name)}</h3>

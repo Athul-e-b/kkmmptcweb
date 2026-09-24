@@ -254,8 +254,8 @@ async function cmsStaffRender() {
                 <div class="bg-gradient-to-br from-primary to-primary-dark text-white rounded-2xl p-4 shadow border border-primary/20">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-accent">★ Head of Department</p>
                     ${hod && hod.photo_url
-                        ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-20 h-20 rounded-full object-cover border-4 border-white/40 mt-3">`
-                        : `<div class="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center text-2xl font-bold mt-3">${hod ? escapeHTML(hod.name.charAt(0)) : '—'}</div>`}
+                        ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-24 h-24 rounded-full object-cover border-4 border-white/40 mt-3">`
+                        : `<div class="w-24 h-24 rounded-full bg-white/15 flex items-center justify-center text-2xl font-bold mt-3">${hod ? escapeHTML(hod.name.charAt(0)) : '—'}</div>`}
                     <p class="font-heading font-extrabold text-lg mt-3">${hod ? escapeHTML(hod.name) : 'No HOD yet'}</p>
                     <p class="text-xs text-white/80">${escapeHTML(d.name)}</p>
                     <button type="button" class="mt-3 bg-white text-primary text-xs font-bold px-3 py-1.5 rounded-lg" onclick="cmsHodForm(${d.id}, ${hod ? hod.id : 'null'})">${hod ? 'Edit HOD' : 'Add HOD'}</button>

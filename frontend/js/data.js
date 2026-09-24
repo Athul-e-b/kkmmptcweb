@@ -215,27 +215,40 @@ const KKM_DATA = {
     ],
 
     feeStructure: {
-        regularQuota: {
-            tuitionFee: 15000,
-            specialFee: 2500,
-            cautionDeposit: 1000,
-            ptaFund: 1500,
-            totalPerSemester: 20000,
-            notes: "Concessions available for SC/ST/OBC/OEC students under Govt. E-Grantz scheme."
+        diploma: {
+            duration: "3 Years (6 Semesters)",
+            tuitionFee: 12705,
+            tuitionNote: "₹12,705 per semester",
+            admissionFee: 600,
+            cautionDeposit: 2000,
+            notes: "SC/ST/OEC/OBC(H) students are eligible for E-Grantz benefits."
         },
-        ihrdManagementQuota: {
-            tuitionFee: 25000,
-            specialFee: 3000,
-            cautionDeposit: 1000,
-            ptaFund: 1500,
-            totalPerSemester: 30500,
-            notes: "Direct application through college office under IHRD seats."
+        letDiploma: {
+            duration: "2 Years / 4 Semesters",
+            tuitionFee: 12705,
+            tuitionNote: "₹12,705 per semester",
+            admissionFee: 600,
+            cautionDeposit: 2000,
+            additionalTuitionFee: 10500,
+            notes: "Additional Tuition Fee ₹10,500 is not included in the regular Diploma fee."
         },
-        lateralEntry: {
-            duration: "2 Years (Direct 3rd Semester Admission)",
-            eligibility: "Plus Two Science / VHSE / 2-Year ITI Passouts",
-            totalPerSemester: 20000
-        }
+        pgdca: {
+            duration: "1 Year / 2 Semesters",
+            tuitionFee: 10000,
+            tuitionNote: "₹10,000 per semester",
+            admissionFee: 300,
+            cautionDeposit: 600,
+            examinationFee: 1000,
+            examinationNote: "₹1,000 per semester"
+        },
+        dca: {
+            duration: "6 Months / 1 Semester",
+            tuitionFee: 7500,
+            admissionFee: 300,
+            cautionDeposit: 600,
+            examinationFee: 1000
+        },
+        eGrantz: "SC/ST/OEC/OBC(H) students are eligible for E-Grantz benefits."
     },
 
     notices: [

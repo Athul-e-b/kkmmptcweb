@@ -12,7 +12,7 @@
         },
         {
             keywords: ["fee", "fees", "cost", "tuition", "sc", "st", "obc", "grantz", "concession", "caution"],
-            response: "💰 **Fee Structure**: Regular Govt Quota Tuition Fee is ₹15,000/sem + Special Fee ₹2,500 + Caution Deposit ₹1,000 + PTA ₹1,500 (Total ₹20,000/sem). Full fee waivers are available for SC/ST/OEC under Govt. E-Grantz!",
+            response: "💰 **Fee Structure**: Diploma tuition is **₹12,705 per semester**, plus Admission Fee **₹600** and Caution Deposit **₹2,000**. LET Diploma also has Additional Tuition Fee **₹10,500**. PGDCA is **₹10,000 per semester** + Admission **₹300** + Caution **₹600** + Examination **₹1,000 per semester**. DCA is **₹7,500** + Admission **₹300** + CD **₹600** + Examination **₹1,000**. **SC/ST/OEC/OBC(H) students are eligible for E-Grantz benefits.**",
             actions: [{ text: "Calculate Fees", link: "admissions.html#calculator" }]
         },
         {

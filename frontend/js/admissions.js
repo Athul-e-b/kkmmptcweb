@@ -2,41 +2,118 @@
  * KKMMPTC Kallettumkara - Admissions & Fee Calculator Module
  */
 
+const FEE_PROGRAMMES = {
+    diploma: {
+        tuition: 12705,
+        tuitionPerSemester: true,
+        admission: 600,
+        caution: 2000,
+        cautionLabel: 'Caution Deposit',
+        additional: 0,
+        exam: 0,
+        examPerSemester: false,
+        semesters: 6
+    },
+    let: {
+        tuition: 12705,
+        tuitionPerSemester: true,
+        admission: 600,
+        caution: 2000,
+        cautionLabel: 'Caution Deposit',
+        additional: 10500,
+        exam: 0,
+        examPerSemester: false,
+        semesters: 4
+    },
+    pgdca: {
+        tuition: 10000,
+        tuitionPerSemester: true,
+        admission: 300,
+        caution: 600,
+        cautionLabel: 'Caution Deposit',
+        additional: 0,
+        exam: 1000,
+        examPerSemester: true,
+        semesters: 2
+    },
+    dca: {
+        tuition: 7500,
+        tuitionPerSemester: false,
+        admission: 300,
+        caution: 600,
+        cautionLabel: 'Caution Deposit (CD)',
+        additional: 0,
+        exam: 1000,
+        examPerSemester: false,
+        semesters: 1
+    }
+};
+
+function formatINR(amount) {
+    return `₹${Number(amount).toLocaleString('en-IN')}`;
+}
+
 function calculateFees() {
-    const quota = document.getElementById('calcQuota') ? document.getElementById('calcQuota').value : 'regular';
-    const category = document.getElementById('calcCategory') ? document.getElementById('calcCategory').value : 'gen';
+    const programmeKey = document.getElementById('calcProgramme')
+        ? document.getElementById('calcProgramme').value
+        : 'diploma';
+    const category = document.getElementById('calcCategory')
+        ? document.getElementById('calcCategory').value
+        : 'gen';
+    const plan = FEE_PROGRAMMES[programmeKey] || FEE_PROGRAMMES.diploma;
+    const egrantz = category === 'egrantz' || category === 'sc_st';
 
-    let tuition = 15000;
-    let special = 2500;
-    let caution = 1000;
-    let pta = 1500;
+    const tuition = egrantz ? 0 : plan.tuition;
+    const additional = egrantz ? 0 : plan.additional;
+    const exam = plan.exam;
+    const admission = plan.admission;
+    const caution = plan.caution;
 
-    if (quota === 'ihrd') {
-        tuition = 25000;
-        special = 3000;
+    const firstSemester = tuition + admission + caution + additional + exam;
+    const subsequent = plan.semesters > 1
+        ? (tuition + (plan.examPerSemester ? exam : 0))
+        : null;
+
+    const rows = [
+        {
+            label: plan.tuitionPerSemester ? 'Tuition Fee (per semester)' : 'Tuition Fee',
+            value: formatINR(tuition)
+        },
+        { label: 'Admission Fee (one-time)', value: formatINR(admission) },
+        { label: `${plan.cautionLabel} (one-time)`, value: formatINR(caution) }
+    ];
+    if (plan.additional) {
+        rows.push({ label: 'Additional Tuition Fee (one-time)', value: formatINR(additional) });
+    }
+    if (plan.exam) {
+        rows.push({
+            label: plan.examPerSemester ? 'Examination Fee (per semester)' : 'Examination Fee',
+            value: formatINR(exam)
+        });
     }
 
-    // Reservation Fee Concessions
-    if (category === 'sc_st' && quota === 'regular') {
-        tuition = 0;
-        special = 0;
-    } else if (category === 'obc' && quota === 'regular') {
-        tuition = 5000; // Partial E-grantz concession
+    const grid = document.getElementById('feeBreakupGrid');
+    if (grid) {
+        grid.innerHTML = rows.map((row) => `
+            <div>
+                <span class="text-slate-400">${row.label}:</span>
+                <div class="font-bold text-sm text-white">${row.value}</div>
+            </div>
+        `).join('');
     }
 
-    const total = tuition + special + caution + pta;
-
-    const resTuition = document.getElementById('resTuition');
-    const resSpecial = document.getElementById('resSpecial');
-    const resCaution = document.getElementById('resCaution');
-    const resPTA = document.getElementById('resPTA');
-    const resTotal = document.getElementById('resTotal');
-
-    if (resTuition) resTuition.innerText = `₹ ${tuition.toLocaleString('en-IN')}`;
-    if (resSpecial) resSpecial.innerText = `₹ ${special.toLocaleString('en-IN')}`;
-    if (resCaution) resCaution.innerText = `₹ ${caution.toLocaleString('en-IN')}`;
-    if (resPTA) resPTA.innerText = `₹ ${pta.toLocaleString('en-IN')}`;
-    if (resTotal) resTotal.innerText = `₹ ${total.toLocaleString('en-IN')} / Sem`;
+    const firstEl = document.getElementById('resFirstTotal');
+    const nextEl = document.getElementById('resNextTotal');
+    const nextRow = document.getElementById('resNextRow');
+    if (firstEl) firstEl.textContent = formatINR(firstSemester);
+    if (nextRow) {
+        if (subsequent === null) {
+            nextRow.classList.add('hidden');
+        } else {
+            nextRow.classList.remove('hidden');
+            if (nextEl) nextEl.textContent = formatINR(subsequent);
+        }
+    }
 }
 
 function checkEligibility() {

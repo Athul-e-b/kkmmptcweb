@@ -449,7 +449,7 @@ function executeGlobalSearch() {
         { text: 'Robotic Process Automation (RPA) Diploma', link: 'departments.html#dept-rpa' },
         { text: 'Electrical & Electronics Engineering (EEE) Program', link: 'departments.html#dept-eee' },
         { text: 'Diploma Admissions 2026 Single Window Portal & Eligibility', link: 'admissions.html' },
-        { text: 'Fee Calculator & Tuition Concessions (E-Grantz)', link: 'admissions.html#calculator' },
+        { text: 'Fee Calculator, Diploma / LET / PGDCA / DCA Fees & E-Grantz', link: 'admissions.html#calculator' },
         { text: 'Principal Desk & IHRD Administration Contact', link: 'index.html#principal-message' },
         { text: 'Industry on Campus (IOC) Earn as You Learn Scheme', link: 'index.html#placements' },
         { text: 'Campus Facilities: Library, Specialized Labs, NSS, Women Cell', link: 'index.html#facilities' },
