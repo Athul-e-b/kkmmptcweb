@@ -149,6 +149,14 @@ async function loadStaff() {
         const facultyBox = document.getElementById('staffList');
         facultyBox.innerHTML = faculty.map(s => staffCardHtml(s, false)).join('') ||
             `<p class="text-xs text-slate-400 sm:col-span-2">No faculty added yet.</p>`;
+
+        const chargeOn = document.querySelector('#hodForm input[name="is_in_charge"][value="1"]');
+        const chargeOff = document.querySelector('#hodForm input[name="is_in_charge"][value="0"]');
+        if (chargeOn && chargeOff) {
+            const on = hodIsInCharge(hod);
+            chargeOn.checked = on;
+            chargeOff.checked = !on;
+        }
     } catch (err) {
         alert(err.message);
     }
@@ -164,6 +172,7 @@ function staffCardHtml(s, isHod) {
             <div class="flex-1 min-w-0">
                 ${isHod ? `<div class="text-[10px] font-bold uppercase tracking-wider text-primary">★ Head of Department</div>` : ''}
                 <div class="font-bold text-slate-900 text-xs">${escapeHTML(s.name)}</div>
+                ${isHod && hodIsInCharge(s) ? `<div class="text-[11px] font-semibold text-primary mt-0.5">In Charge</div>` : ''}
             </div>
             <button type="button" onclick="deleteStaff(${s.id})" class="text-secondary hover:text-secondary-dark text-xs" title="Remove"><i class="fa-solid fa-trash"></i></button>
         </div>`;

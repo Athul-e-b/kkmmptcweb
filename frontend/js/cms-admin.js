@@ -8,6 +8,10 @@ let cmsEditingStaff = null;
 let cmsEditingEvent = null;
 let cmsStaffCache = [];
 
+function hodIsInCharge(hod) {
+    return !!(hod && (hod.is_in_charge === true || hod.is_in_charge === 1 || hod.is_in_charge === '1'));
+}
+
 function toast(msg, ok = true) {
     const el = document.getElementById('cmsToast');
     if (!el) return;
@@ -257,6 +261,7 @@ async function cmsStaffRender() {
                         ? `<img src="${escapeHTML(hod.photo_url)}" alt="${escapeHTML(hod.name)}" class="w-24 h-24 rounded-full object-cover border-4 border-white/40 mt-3">`
                         : `<div class="w-24 h-24 rounded-full bg-white/15 flex items-center justify-center text-2xl font-bold mt-3">${hod ? escapeHTML(hod.name.charAt(0)) : '—'}</div>`}
                     <p class="font-heading font-extrabold text-lg mt-3">${hod ? escapeHTML(hod.name) : 'No HOD yet'}</p>
+                    ${hodIsInCharge(hod) ? `<p class="text-[11px] font-semibold text-accent mt-0.5">In Charge</p>` : ''}
                     <p class="text-xs text-white/80">${escapeHTML(d.name)}</p>
                     <button type="button" class="mt-3 bg-white text-primary text-xs font-bold px-3 py-1.5 rounded-lg" onclick="cmsHodForm(${d.id}, ${hod ? hod.id : 'null'})">${hod ? 'Edit HOD' : 'Add HOD'}</button>
                 </div>`).join('')}
@@ -308,6 +313,19 @@ function cmsHodForm(deptId, staffId) {
             <select name="department_id" required class="mt-1 w-full px-3 py-2 rounded-lg border">${deptOptions(deptId)}</select>
         </label>
         ${inp('name', 'HOD Name *', hod ? hod.name : '', 'required')}
+        <div class="sm:col-span-2">
+            <p class="font-bold text-slate-700 mb-1">In Charge</p>
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="is_in_charge" value="1" ${hodIsInCharge(hod) ? 'checked' : ''}>
+                    <span>In Charge</span>
+                </label>
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="is_in_charge" value="0" ${hodIsInCharge(hod) ? '' : 'checked'}>
+                    <span>Regular HOD</span>
+                </label>
+            </div>
+        </div>
         <label class="block sm:col-span-2">HOD Photo
             <input type="file" name="photo" id="cmsHodPhoto" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="mt-1 w-full text-xs">
             <div id="cmsHodPreview" class="mt-2">${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-20 h-20 rounded-full object-cover">` : ''}</div>

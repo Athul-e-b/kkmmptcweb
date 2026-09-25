@@ -12,6 +12,10 @@ function escapeHTML(str) {
     );
 }
 
+function hodIsInCharge(hod) {
+    return !!(hod && (hod.is_in_charge === true || hod.is_in_charge === 1 || hod.is_in_charge === '1'));
+}
+
 // NOTICE BOARD — pulled live from the backend (published via admin.html's
 // "Publish New Notice" form). Real database now, so every visitor sees the
 // same notices — no longer per-browser localStorage. Falls back to the
@@ -263,6 +267,7 @@ function openDeptModal(code) {
                     ${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-8 h-8 rounded-full object-cover" alt="">` : ''}
                     <span>Head of Department: ${escapeHTML(hod ? hod.name : 'Not provided')}</span>
                 </div>
+                ${hodIsInCharge(hod) ? `<p class="text-xs font-semibold text-primary mb-3">In Charge</p>` : ''}
                 <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">${escapeHTML(d.description || '')}</p>
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
                     <a href="departments.html?department=${encodeURIComponent(d.code)}" class="bg-primary text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow hover:bg-primary-dark transition inline-block">View Department</a>
@@ -290,6 +295,7 @@ async function loadModalHod(deptCode) {
         hodLine.innerHTML = `
             ${photo}
             <span>Head of Department: ${escapeHTML(hod.name)}${hod.email ? ` <span class="text-slate-400 font-normal">· ${escapeHTML(hod.email)}</span>` : ''}</span>
+            ${hodIsInCharge(hod) ? `<span class="text-primary font-semibold">In Charge</span>` : ''}
         `;
     } catch (e) {
         console.error('Could not load live HOD data', e);

@@ -67,10 +67,20 @@ class StaffOut(BaseModel):
     phone: Optional[str] = None
     photo_url: Optional[str] = None
     is_active: Optional[int] = 1
+    is_in_charge: bool = False
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+    @field_validator("is_in_charge", mode="before")
+    @classmethod
+    def coerce_is_in_charge(cls, v):
+        if v in (None, ""):
+            return False
+        if isinstance(v, str):
+            return v.strip().lower() in ("1", "true", "yes", "on")
+        return bool(v)
 
 
 class StaffUpdate(BaseModel):
@@ -82,6 +92,7 @@ class StaffUpdate(BaseModel):
     phone: Optional[str] = None
     department_id: Optional[int] = None
     is_active: Optional[int] = None
+    is_in_charge: Optional[bool] = None
 
 
 class EventOut(BaseModel):

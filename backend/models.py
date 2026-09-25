@@ -56,6 +56,7 @@ class Staff(Base):
     phone = Column(String(40), nullable=True)
     photo_url = Column(String(255), nullable=True)
     is_active = Column(Integer, default=1)
+    is_in_charge = Column(Integer, default=0)  # 1 = HOD serving In Charge; missing/0 = regular HOD
     created_at = Column(DateTime, default=datetime.utcnow)
 
     department = relationship("Department", back_populates="staff")

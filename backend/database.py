@@ -41,6 +41,7 @@ EXTRA_COLUMNS = {
     "staff": {
         "phone": "VARCHAR(40)",
         "is_active": "INTEGER DEFAULT 1",
+        "is_in_charge": "INTEGER DEFAULT 0",
     },
     "events": {
         "start_time": "VARCHAR(20)",

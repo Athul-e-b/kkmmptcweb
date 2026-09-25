@@ -18,6 +18,7 @@ function hodBlock(d) {
             <p class="text-[10px] font-bold uppercase tracking-wider text-primary">★ Head of Department</p>
             ${photo}
             <p class="font-bold text-sm text-slate-900 mt-2">${escapeHTML(hod.name)}</p>
+            ${hodIsInCharge(hod) ? `<p class="text-[11px] font-semibold text-primary mt-0.5">In Charge</p>` : ''}
             <p class="text-[11px] text-slate-600">${escapeHTML(d.name)}</p>
         </div>`;
 }
@@ -71,6 +72,7 @@ function detailHTML(d, staff, events, gallery) {
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-accent">★ Head of Department</p>
                         <h3 class="font-bold font-heading text-2xl mt-1">${escapeHTML(hod.name)}</h3>
+                        ${hodIsInCharge(hod) ? `<p class="text-sm font-semibold text-accent mt-1">In Charge</p>` : ''}
                         <p class="text-sm text-white/85 mt-1">${escapeHTML(d.name)}</p>
                     </div>
                 </section>` : ''}

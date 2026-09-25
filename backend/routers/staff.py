@@ -18,6 +18,12 @@ router = APIRouter(prefix="/api/staff", tags=["staff"])
 MAX_PHOTO = 4 * 1024 * 1024
 
 
+def _parse_in_charge(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    return 1 if str(value).strip().lower() in ("1", "true", "yes", "on") else 0
+
+
 def _ensure_single_hod(db: Session, department_id: int, keep_id: Optional[int] = None):
     q = db.query(models.Staff).filter(
         models.Staff.department_id == department_id,
@@ -47,6 +53,7 @@ async def create_staff(
     email: str = Form(""),
     phone: str = Form(""),
     is_active: int = Form(1),
+    is_in_charge: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
     _admin: bool = Depends(auth.require_admin),
     db: Session = Depends(get_db),
@@ -60,6 +67,9 @@ async def create_staff(
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
     photo_url = await save_upload(photo, "staff", IMAGE_EXT, MAX_PHOTO)
+    in_charge = _parse_in_charge(is_in_charge)
+    if in_charge is None:
+        in_charge = 0
     if role == "HOD":
         existing = db.query(models.Staff).filter(
             models.Staff.department_id == department_id,
@@ -70,6 +80,7 @@ async def create_staff(
             if photo_url:
                 delete_local_file(existing.photo_url)
                 existing.photo_url = photo_url
+            existing.is_in_charge = in_charge
             db.commit()
             db.refresh(existing)
             return existing
@@ -78,6 +89,7 @@ async def create_staff(
         designation=designation or None, qualification=qualification or None,
         email=email or None, phone=phone or None, photo_url=photo_url,
         is_active=is_active,
+        is_in_charge=in_charge if role == "HOD" else 0,
     )
     db.add(staff)
     db.commit()
@@ -96,6 +108,7 @@ async def update_staff(
     phone: str = Form(None),
     department_id: Optional[int] = Form(None),
     is_active: Optional[int] = Form(None),
+    is_in_charge: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
     remove_photo: str = Form(None),
     _admin: bool = Depends(auth.require_admin),
@@ -118,10 +131,15 @@ async def update_staff(
         staff.department_id = department_id
     if is_active is not None:
         staff.is_active = is_active
+    in_charge = _parse_in_charge(is_in_charge)
+    if in_charge is not None:
+        staff.is_in_charge = in_charge
     if role is not None:
         if role not in ("HOD", "Faculty"):
             raise HTTPException(status_code=400, detail="role must be HOD or Faculty")
         staff.role = role
+        if role == "Faculty":
+            staff.is_in_charge = 0
     if role == "HOD" or staff.role == models.RoleEnum.HOD:
         _ensure_single_hod(db, staff.department_id, keep_id=staff.id)
     if remove_photo in ("1", "true", "yes"):

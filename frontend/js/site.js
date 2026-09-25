@@ -12,6 +12,10 @@ function placeholderAvatar(name) {
     return `<div class="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">${ch}</div>`;
 }
 
+function hodIsInCharge(hod) {
+    return !!(hod && (hod.is_in_charge === true || hod.is_in_charge === 1 || hod.is_in_charge === '1'));
+}
+
 function bindCollegeInfo(info) {
     if (!info) return;
     document.querySelectorAll('[data-college="name"]').forEach((el) => { el.textContent = info.name || el.textContent; });

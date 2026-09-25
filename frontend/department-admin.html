@@ -173,6 +173,19 @@
                         <form id="hodForm" class="grid sm:grid-cols-2 gap-3 mt-3" enctype="multipart/form-data">
                             <input required name="name" placeholder="HOD name" class="px-3 py-2 rounded-lg border border-slate-300">
                             <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" class="px-3 py-2 rounded-lg border border-slate-300 text-xs">
+                            <div class="sm:col-span-2">
+                                <p class="font-bold text-slate-700 mb-1">In Charge</p>
+                                <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="is_in_charge" value="1">
+                                        <span>In Charge</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="is_in_charge" value="0" checked>
+                                        <span>Regular HOD</span>
+                                    </label>
+                                </div>
+                            </div>
                             <button class="sm:col-span-2 bg-primary hover:bg-primary-dark text-white font-bold py-2.5 rounded-lg">Save HOD</button>
                         </form>
                         <p class="text-[11px] text-slate-500 mt-2">Each branch has one HOD. Saving updates the existing HOD for this department.</p>
