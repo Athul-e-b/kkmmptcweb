@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KKMMPTC Admin CMS</title>
+    <link rel="icon" type="image/png" href="images/ihrd.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,9 +14,9 @@
         tailwind.config = {
             theme: { extend: {
                 colors: {
-                    primary: { DEFAULT: '#0B4F9F', dark: '#083B78', light: '#1B62B8' },
-                    secondary: { DEFAULT: '#D62828', dark: '#B01E1E' },
-                    accent: { DEFAULT: '#FFC107' }
+                    primary: { DEFAULT: '#0066FF', dark: '#0066FF', light: '#0066FF' },
+                    secondary: { DEFAULT: '#000000', dark: '#000000' },
+                    accent: { DEFAULT: '#EBEFFB', dark: '#0066FF' }
                 },
                 fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] }
             } }
@@ -23,7 +24,7 @@
     </script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="antialiased bg-slate-100 text-slate-800 min-h-screen">
+<body class="cms-app antialiased bg-slate-100 text-slate-800 min-h-screen">
 
     <header class="bg-slate-900 text-white border-b border-slate-800">
         <div class="px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -61,18 +62,22 @@
         <aside id="cmsSidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 pt-16 lg:pt-4 px-3 transform -translate-x-full lg:translate-x-0 transition">
             <p class="text-[10px] uppercase tracking-wider text-slate-500 px-3 mb-2">Content</p>
             <nav class="space-y-0.5 text-xs font-semibold">
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg bg-primary text-white" data-section="dashboard">Dashboard</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="college">College Information</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="principal">Principal</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="departments">Departments</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="staff">HOD &amp; Faculty</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="events">Events</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="gallery">Gallery</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="notices">Notices</button>
-                <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800" data-section="admissions">Admissions</button>
+                <button type="button" class="cms-nav is-active" data-section="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>
+                <button type="button" class="cms-nav" data-section="college"><i class="fa-solid fa-building-columns"></i> College Information</button>
+                <button type="button" class="cms-nav" data-section="principal"><i class="fa-solid fa-user-tie"></i> Principal</button>
+                <button type="button" class="cms-nav" data-section="departments"><i class="fa-solid fa-sitemap"></i> Departments</button>
+                <button type="button" class="cms-nav" data-section="dept-accounts"><i class="fa-solid fa-key"></i> Department Management</button>
+                <button type="button" class="cms-nav" data-section="staff"><i class="fa-solid fa-chalkboard-user"></i> HOD &amp; Faculty</button>
+                <button type="button" class="cms-nav" data-section="events"><i class="fa-solid fa-calendar-days"></i> Events</button>
+                <button type="button" class="cms-nav" data-section="gallery"><i class="fa-solid fa-images"></i> Gallery</button>
+                <button type="button" class="cms-nav" data-section="iic"><i class="fa-solid fa-lightbulb"></i> IIC Management</button>
+                <button type="button" class="cms-nav" data-section="clubs"><i class="fa-solid fa-people-group"></i> Clubs Management</button>
+                <button type="button" class="cms-nav" data-section="notices"><i class="fa-solid fa-bullhorn"></i> Notices</button>
+                <button type="button" class="cms-nav" data-section="ticker"><i class="fa-solid fa-bell"></i> Scrolling Notifications</button>
+                <button type="button" class="cms-nav" data-section="admissions"><i class="fa-solid fa-file-lines"></i> Admissions</button>
             </nav>
             <p class="text-[10px] uppercase tracking-wider text-slate-500 px-3 mt-5 mb-2">Communication</p>
-            <button type="button" class="cms-nav w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-xs font-semibold" data-section="grievances">Grievances</button>
+            <button type="button" class="cms-nav" data-section="grievances"><i class="fa-solid fa-comments"></i> Grievances</button>
         </aside>
         <div id="cmsBackdrop" class="hidden lg:hidden fixed inset-0 bg-black/40 z-20" onclick="toggleCmsSidebar()"></div>
 
@@ -101,6 +106,33 @@
                 </div>
                 <div id="cmsDeptList" class="grid md:grid-cols-2 gap-3"></div>
                 <form id="cmsDeptForm" class="hidden bg-white p-6 rounded-2xl border border-slate-200 mt-4 grid sm:grid-cols-2 gap-3 text-xs"></form>
+            </section>
+
+            <section data-cms="dept-accounts" class="cms-section hidden">
+                <div class="mb-4">
+                    <h2 class="font-heading font-bold text-lg">Department Management</h2>
+                    <p class="text-xs text-slate-500 mt-1">Create and manage one login for each existing department. Department records and their content are not changed here.</p>
+                </div>
+                <div id="deptAccountTable" class="bg-white rounded-2xl border border-slate-200 overflow-x-auto mb-4"></div>
+                <form id="deptAccountForm" class="bg-white p-6 rounded-2xl border border-slate-200 grid sm:grid-cols-2 gap-3 text-xs">
+                    <h3 class="sm:col-span-2 font-heading font-bold text-sm text-slate-900">Add a department user</h3>
+                    <label class="block sm:col-span-2">Department
+                        <select id="deptAccountDept" name="department_id" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 bg-white"></select>
+                    </label>
+                    <label class="block">Username
+                        <input name="username" required maxlength="32" autocomplete="off" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="e.g. cs.hod">
+                    </label>
+                    <label class="block">Password
+                        <input name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300">
+                    </label>
+                    <label class="block sm:col-span-2">Confirm password
+                        <input name="confirm_password" type="password" required minlength="8" autocomplete="new-password" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300">
+                    </label>
+                    <p id="deptAccountHint" class="sm:col-span-2 text-xs text-slate-500">Usernames are stored in lowercase. The password needs 8 characters, upper and lower case, a number, and a special character.</p>
+                    <div class="sm:col-span-2">
+                        <button type="submit" id="deptAccountSubmit" class="bg-primary hover:bg-primary-dark text-white font-bold px-4 py-2.5 rounded-lg">Create account</button>
+                    </div>
+                </form>
             </section>
 
             <section data-cms="staff" class="cms-section hidden">
@@ -152,6 +184,55 @@
                 <div id="cmsNoticeList" class="mt-4 space-y-2 text-xs"></div>
             </section>
 
+            <section data-cms="ticker" class="cms-section hidden">
+                <div class="mb-4">
+                    <h2 class="font-heading font-bold text-lg">Scrolling Notifications</h2>
+                    <p class="text-xs text-slate-500 mt-1">Messages shown in the public notification bar, in display order. Inactive messages stay hidden on the website.</p>
+                </div>
+                <div class="ticker-admin-preview mb-4" aria-label="Notification bar preview">
+                    <span class="ticker-admin-preview-label">Preview</span>
+                    <div class="ticker-viewport">
+                        <div class="ticker-track" id="tickerPreviewTrack"></div>
+                    </div>
+                </div>
+                <form id="tickerForm" class="bg-white p-6 rounded-2xl border border-slate-200 grid gap-3 text-xs mb-4">
+                    <input type="hidden" id="tickerEditId" value="">
+                    <label class="block font-semibold text-slate-700">Notification message
+                        <textarea id="tickerMessage" required maxlength="400" rows="3" class="mt-1 w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm"></textarea>
+                    </label>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <label class="block font-semibold text-slate-700">Link URL
+                            <input id="tickerLinkUrl" type="text" inputmode="url" maxlength="400" class="mt-1 w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm" placeholder="https://">
+                        </label>
+                        <label class="block font-semibold text-slate-700">Link label
+                            <input id="tickerLinkLabel" maxlength="80" class="mt-1 w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm">
+                        </label>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-3 items-end">
+                        <label class="block font-semibold text-slate-700">Display order
+                            <input id="tickerOrder" type="number" min="0" max="9999" class="mt-1 w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm">
+                        </label>
+                        <label class="flex items-center gap-2 font-semibold text-slate-700 min-h-10">
+                            <input id="tickerActive" type="checkbox" checked> Active
+                        </label>
+                    </div>
+                    <p id="tickerFormError" class="text-secondary font-semibold hidden"></p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="submit" id="tickerSaveBtn" class="bg-primary hover:bg-primary-dark text-white font-bold px-4 py-2.5 rounded-lg">Add notification</button>
+                        <button type="button" id="tickerCancelBtn" class="hidden px-4 py-2.5 rounded-lg border border-slate-300 font-semibold">Cancel</button>
+                    </div>
+                </form>
+                <div id="tickerAdminList" class="space-y-2"></div>
+            </section>
+
+            <section data-cms="iic" class="cms-section hidden">
+                <div id="iicAdmin" class="space-y-4"></div>
+            </section>
+
+            <section data-cms="clubs" class="cms-section hidden">
+                <div id="clubsAdmin" class="space-y-4"></div>
+            </section>
+
             <section data-cms="admissions" class="cms-section hidden">
                 <div class="bg-white rounded-2xl border p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -192,6 +273,8 @@
     <script src="js/main.js"></script>
     <script src="js/admin-auth.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/cms-campus.js"></script>
     <script src="js/cms-admin.js"></script>
+    <script src="js/enhance.js"></script>
 </body>
 </html>

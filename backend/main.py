@@ -12,12 +12,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.orm import Session
 
-from database import Base, engine, ensure_sqlite_columns, get_db
+from database import Base, engine, ensure_sqlite_columns, get_db, seed_scrolling_notifications_if_empty, seed_campus_pages_if_missing
 import models
-from routers import admin_auth, departments, staff, events, principal, grievances, notices, applications, gallery, college_info
+from routers import admin_auth, departments, staff, events, principal, grievances, notices, applications, gallery, college_info, scrolling_notifications, department_auth, department_users, campus_life
 
 Base.metadata.create_all(bind=engine)
 ensure_sqlite_columns()
+seed_scrolling_notifications_if_empty()
+seed_campus_pages_if_missing()
 
 app = FastAPI(title="KKMMPTC Admin API", version="1.0.0")
 
@@ -54,6 +56,10 @@ app.include_router(notices.router)
 app.include_router(applications.router)
 app.include_router(gallery.router)
 app.include_router(college_info.router)
+app.include_router(scrolling_notifications.router)
+app.include_router(department_auth.router)
+app.include_router(department_users.router)
+app.include_router(campus_life.router)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")

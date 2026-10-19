@@ -183,18 +183,31 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMobileMenu();
+    if (e.key !== 'Escape') return;
+    const openModal = ['deptModal', 'searchModal', 'lightboxModal', 'videoModal', 'otpModal']
+        .map((id) => document.getElementById(id))
+        .filter((node) => node && !node.classList.contains('hidden'))
+        .pop();
+    if (openModal) {
+        toggleModal(openModal.id);
+        return;
+    }
+    closeMobileMenu();
 });
 
 window.addEventListener('resize', () => {
     if (document.body.classList.contains('nav-open')) updateNavbarOffset();
 });
 
+const modalReturnFocus = new Map();
+
 // GENERIC MODAL TOGGLE
 function toggleModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
-    
+    const willOpen = modal.classList.contains('hidden');
+    if (willOpen) modalReturnFocus.set(id, document.activeElement);
+
     modal.classList.toggle('hidden');
 
     if (id === 'videoModal') {
@@ -208,11 +221,17 @@ function toggleModal(id) {
         }
     }
 
-    if (id === 'searchModal' && !modal.classList.contains('hidden')) {
-        setTimeout(() => {
-            const input = document.getElementById('globalSearchInput');
-            if (input) input.focus();
-        }, 100);
+    if (!modal.classList.contains('hidden')) {
+        modal.setAttribute('aria-modal', 'true');
+        const focusTarget = id === 'searchModal'
+            ? document.getElementById('globalSearchInput')
+            : modal.querySelector('button, [href], input, select, textarea');
+        if (focusTarget) setTimeout(() => focusTarget.focus(), id === 'searchModal' ? 100 : 0);
+    } else {
+        modal.removeAttribute('aria-modal');
+        const back = modalReturnFocus.get(id);
+        modalReturnFocus.delete(id);
+        if (back && typeof back.focus === 'function') back.focus();
     }
 }
 
@@ -457,7 +476,9 @@ function executeGlobalSearch() {
         { text: 'Diploma Admissions 2026 Single Window Portal & Eligibility', link: 'admissions.html' },
         { text: 'Fee Calculator, Diploma / LET / PGDCA / DCA Fees & E-Grantz', link: 'admissions.html#calculator' },
         { text: 'Principal Desk & IHRD Administration Contact', link: 'index.html#principal-message' },
-        { text: 'Industry on Campus (IOC) Earn as You Learn Scheme', link: 'index.html#placements' },
+        { text: 'Industry on Campus (IOC) Earn while you learn Scheme', link: 'index.html#placements' },
+        { text: 'Institution\'s Innovation Council (IIC)', link: 'iic.html' },
+        { text: 'Student Clubs: Music, Sports, Arts, and Coding', link: 'clubs.html' },
         { text: 'Campus Facilities: Library, Specialized Labs, NSS, Women Cell', link: 'index.html#facilities' },
         { text: 'Downloads: Syllabus, Prospectus, AICTE EOA Documents', link: 'index.html#downloads' },
         { text: 'Grievance Redressal: File academic, administrative, or ragging complaints', link: 'grievance.html' },

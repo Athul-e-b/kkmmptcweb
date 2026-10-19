@@ -42,6 +42,7 @@ class Department(Base):
     staff = relationship("Staff", back_populates="department", cascade="all, delete-orphan")
     events = relationship("Event", back_populates="department")
     gallery = relationship("GalleryPhoto", back_populates="department")
+    login_account = relationship("DepartmentUser", back_populates="department", uselist=False)
 
 
 class Staff(Base):
@@ -225,6 +226,34 @@ class GalleryPhoto(Base):
     department = relationship("Department", back_populates="gallery")
 
 
+class ScrollingNotification(Base):
+    """Messages shown in the public homepage notification bar."""
+    __tablename__ = "scrolling_notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    message = Column(String(400), nullable=False)
+    link_url = Column(String(400), nullable=True)
+    link_label = Column(String(80), nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
+    display_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class DepartmentUser(Base):
+    """One login account for an existing department. The department row stays authoritative."""
+    __tablename__ = "department_users"
+    id = Column(Integer, primary_key=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), unique=True, nullable=False, index=True)
+    username = Column(String(32), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    is_active = Column(Integer, nullable=False, default=1)
+    token_version = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    department = relationship("Department", back_populates="login_account")
+
+
 class AdminUser(Base):
     """
     Singleton administrator. `slot` is always 1 and unique so SQLite/SQLAlchemy
@@ -239,4 +268,117 @@ class AdminUser(Base):
     password_hash = Column(String(255), nullable=False)
     setup_completed = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class IICPage(Base):
+    """Singleton copy for the public Institution's Innovation Council page."""
+    __tablename__ = "iic_pages"
+    id = Column(Integer, primary_key=True, index=True)
+    hero_title = Column(String(200), nullable=False, default="Institution's Innovation Council")
+    hero_intro = Column(Text, nullable=True)
+    hero_image_url = Column(String(255), nullable=True)
+    about = Column(Text, nullable=True)
+    vision = Column(Text, nullable=True)
+    mission = Column(Text, nullable=True)
+    objectives = Column(Text, nullable=True)
+    participation = Column(Text, nullable=True)
+    workshops_note = Column(Text, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class IICActivity(Base):
+    __tablename__ = "iic_activities"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    event_date = Column(String(40), nullable=True)
+    venue = Column(String(160), nullable=True)
+    category = Column(String(80), nullable=True)
+    external_url = Column(String(400), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_published = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    photos = relationship(
+        "IICActivityPhoto",
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        order_by="IICActivityPhoto.display_order",
+    )
+
+
+class IICActivityPhoto(Base):
+    __tablename__ = "iic_activity_photos"
+    id = Column(Integer, primary_key=True, index=True)
+    activity_id = Column(Integer, ForeignKey("iic_activities.id"), nullable=False, index=True)
+    image_url = Column(String(255), nullable=False)
+    caption = Column(String(200), nullable=True)
+    alt_text = Column(String(200), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    activity = relationship("IICActivity", back_populates="photos")
+
+
+class IICGalleryImage(Base):
+    __tablename__ = "iic_gallery_images"
+    id = Column(Integer, primary_key=True, index=True)
+    image_url = Column(String(255), nullable=False)
+    caption = Column(String(200), nullable=True)
+    alt_text = Column(String(200), nullable=True)
+    event_title = Column(String(200), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_published = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Club(Base):
+    __tablename__ = "clubs"
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(40), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    intro = Column(Text, nullable=True)
+    description = Column(Text, nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_published = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    activities = relationship(
+        "ClubActivity",
+        back_populates="club",
+        cascade="all, delete-orphan",
+        order_by="ClubActivity.display_order",
+    )
+    images = relationship(
+        "ClubImage",
+        back_populates="club",
+        cascade="all, delete-orphan",
+        order_by="ClubImage.display_order",
+    )
+
+
+class ClubActivity(Base):
+    __tablename__ = "club_activities"
+    id = Column(Integer, primary_key=True, index=True)
+    club_id = Column(Integer, ForeignKey("clubs.id"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    event_date = Column(String(40), nullable=True)
+    venue = Column(String(160), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_published = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    club = relationship("Club", back_populates="activities")
+
+
+class ClubImage(Base):
+    __tablename__ = "club_images"
+    id = Column(Integer, primary_key=True, index=True)
+    club_id = Column(Integer, ForeignKey("clubs.id"), nullable=False, index=True)
+    image_url = Column(String(255), nullable=False)
+    caption = Column(String(200), nullable=True)
+    alt_text = Column(String(200), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_published = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    club = relationship("Club", back_populates="images")
+
 

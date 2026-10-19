@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Department Dashboard</title>
+    <link rel="icon" type="image/png" href="images/ihrd.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {
+            colors: { primary: { DEFAULT: '#0066FF', dark: '#0066FF' }, secondary: { DEFAULT: '#000000' } },
+            fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] }
+        } } };
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page antialiased bg-slate-100 min-h-screen">
+    <main class="max-w-3xl mx-auto px-4 py-12">
+        <section id="deptDash" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider font-bold text-primary">Signed in</p>
+                    <h1 id="deptTitle" class="font-heading font-bold text-2xl text-slate-900 mt-1">Department</h1>
+                </div>
+                <button type="button" id="deptLogout" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-lg">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+            <p class="text-sm text-slate-600">Welcome. You are signed in to this department.</p>
+            <p id="deptSignedInAs" class="text-xs text-slate-500 mt-3"></p>
+        </section>
+        <p id="deptDashStatus" class="text-sm text-slate-500">Checking your department session…</p>
+    </main>
+    <script src="js/department-auth.js"></script>
+    <script>
+        function leaveDashboard() {
+            clearDepartmentToken();
+            window.location.replace('department-login.html');
+        }
+
+        async function loadDepartmentDashboard() {
+            const status = document.getElementById('deptDashStatus');
+            if (!getDepartmentToken()) {
+                leaveDashboard();
+                return;
+            }
+            try {
+                const { res, data } = await departmentApi('/api/department-auth/me');
+                if (!res.ok || !data || !data.department_name) {
+                    leaveDashboard();
+                    return;
+                }
+                document.getElementById('deptTitle').textContent = 'Department ' + data.department_name;
+                document.title = 'Department ' + data.department_name;
+                document.getElementById('deptSignedInAs').textContent = 'Account: ' + data.username;
+                document.getElementById('deptDash').classList.remove('hidden');
+                status.classList.add('hidden');
+            } catch (err) {
+                status.textContent = 'Could not reach the server.';
+            }
+        }
+
+        document.getElementById('deptLogout').addEventListener('click', async () => {
+            const button = document.getElementById('deptLogout');
+            button.disabled = true;
+            try {
+                await departmentApi('/api/department-auth/logout', { method: 'POST' });
+            } catch (err) { /* still clear the local session */ }
+            leaveDashboard();
+        });
+
+        loadDepartmentDashboard();
+    </script>
+</body>
+</html>

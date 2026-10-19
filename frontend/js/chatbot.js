@@ -47,7 +47,7 @@
         },
         {
             keywords: ["contact", "phone", "mobile", "number", "email", "address", "principal", "location", "train", "station"],
-            response: "📞 **Contact Details**: \n- Landline: 0480-2720746 \n- Mobile: +91 8547005080 \n- Email: mptmala@ihrd.ac.in \n- Location: Kallettumkara P.O., Thrissur (1.5 km from Irinjalakuda Railway Station).",
+            response: "📞 **Contact Details**: \n- Landline: 0480-2720746 \n- Mobile: +91 8547005080 \n- Email: mptmala.ihrd@gmail.com \n- Location: Kallettumkara P.O., Thrissur (1.5 km from Irinjalakuda Railway Station).",
             actions: [{ text: "Call Office", url: "tel:04802720746" }]
         },
         {
@@ -226,7 +226,7 @@
         }
 
         return {
-            response: "I'm sorry, I couldn't find exact details for that query. You can reach our office at **0480-2720746** or email **mptmala@ihrd.ac.in**, or check out the Admissions and Departments pages!",
+            response: "I'm sorry, I couldn't find exact details for that query. You can reach our office at **0480-2720746** or email **mptmala.ihrd@gmail.com**, or check out the Admissions and Departments pages!",
             actions: [
                 { text: "Call Office", url: "tel:04802720746" },
                 { text: "Admissions Page", link: "admissions.html" },

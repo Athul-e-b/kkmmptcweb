@@ -11,6 +11,33 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# Previous homepage ticker copy. Inserted once, only when the table is empty,
+# so an existing install keeps the same announcements until an admin edits them.
+DEFAULT_SCROLLING_NOTIFICATIONS = (
+    "🎓 Diploma Admissions 2026-27 under IHRD: Apply Online via Single Window System at polyadmission.org",
+    "⚡ Industry on Campus (IOC) Earn-As-You-Learn Scheme Active across all Engineering Departments",
+    "🏆 KKMMPTC Students Win State Level Technical Paper Presentation Award 2026",
+    "📅 Upcoming 3-Day National Workshop on Embedded Systems & Robotics starting next Monday",
+)
+
+
+def seed_scrolling_notifications_if_empty():
+    import models
+    db = SessionLocal()
+    try:
+        if db.query(models.ScrollingNotification).count():
+            return
+        for index, message in enumerate(DEFAULT_SCROLLING_NOTIFICATIONS, start=1):
+            db.add(models.ScrollingNotification(
+                message=message,
+                is_active=1,
+                display_order=index,
+            ))
+        db.commit()
+    finally:
+        db.close()
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -136,3 +163,55 @@ def _relax_gallery_image_url_null():
         conn.execute(text("ALTER TABLE gallery_photos_new RENAME TO gallery_photos"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_gallery_photos_id ON gallery_photos (id)"))
         conn.execute(text("PRAGMA foreign_keys=ON"))
+
+
+PLACEHOLDER = (
+    "Placeholder — replace this in the admin panel. This is not an official college statement."
+)
+
+CLUB_SEEDS = (
+    ("music", "Music Club", 1, "music, performance, and listening activities the college chooses to publish"),
+    ("sports", "Sports Club", 2, "sporting activities, practice, and college sports days the office chooses to publish"),
+    ("arts", "Arts Club", 3, "artistic and cultural activities the college chooses to publish"),
+    ("coding", "Coding Club", 4, "coding, programming, and collaborative learning the college chooses to publish"),
+)
+
+
+def seed_campus_pages_if_missing():
+    """Insert the IIC page and four clubs only when those rows are absent."""
+    import models
+    db = SessionLocal()
+    try:
+        if db.query(models.IICPage).count() == 0:
+            db.add(models.IICPage(
+                hero_title="Institution's Innovation Council",
+                hero_intro=(
+                    PLACEHOLDER + " Describe how the Institution's Innovation Council supports "
+                    "innovation, creativity, entrepreneurship, and practical problem-solving."
+                ),
+                about=PLACEHOLDER + " Add an introduction to the Institution's Innovation Council.",
+                vision=PLACEHOLDER + " Add the council's vision.",
+                mission=PLACEHOLDER + " Add the council's mission.",
+                objectives=PLACEHOLDER + " Add one objective on each line.",
+                participation=PLACEHOLDER + " Describe how students take part and develop ideas.",
+                workshops_note=PLACEHOLDER + " Describe workshops, seminars, competitions, and related events.",
+            ))
+        existing = {row.slug for row in db.query(models.Club.slug).all()}
+        for slug, name, order, focus in CLUB_SEEDS:
+            if slug in existing:
+                continue
+            db.add(models.Club(
+                slug=slug,
+                name=name,
+                display_order=order,
+                is_published=1,
+                intro=PLACEHOLDER + f" Introduce the {name}.",
+                description=PLACEHOLDER + f" Describe {focus}. Do not add results, awards, or participation that the college has not supplied.",
+            ))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+

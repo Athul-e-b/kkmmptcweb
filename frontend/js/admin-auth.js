@@ -47,7 +47,13 @@ async function adminLogin(e) {
     e.preventDefault();
     const password = document.getElementById('adminPasswordInput').value;
     const errorBox = document.getElementById('loginError');
+    const button = e.target && e.target.querySelector ? e.target.querySelector('button[type="submit"]') : null;
+    const previousLabel = button ? button.textContent : '';
     errorBox.classList.add('hidden');
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'Signing in…';
+    }
     try {
         const result = await apiCall('/api/admin/login', {
             method: 'POST',
@@ -59,6 +65,10 @@ async function adminLogin(e) {
     } catch (err) {
         errorBox.textContent = err.message;
         errorBox.classList.remove('hidden');
+        if (button) {
+            button.disabled = false;
+            button.textContent = previousLabel || 'Sign In';
+        }
     }
 }
 

@@ -25,20 +25,23 @@ function toggleCmsSidebar() {
     const side = document.getElementById('cmsSidebar');
     const back = document.getElementById('cmsBackdrop');
     if (!side) return;
-    const open = side.classList.contains('-translate-x-full');
-    side.classList.toggle('-translate-x-full', !open);
-    if (back) back.classList.toggle('hidden', !open);
+    const willOpen = !side.classList.contains('is-open');
+    side.classList.toggle('is-open', willOpen);
+    side.classList.toggle('-translate-x-full', !willOpen);
+    if (back) back.classList.toggle('hidden', !willOpen);
 }
 
 function showCmsSection(name) {
     document.querySelectorAll('.cms-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-cms') !== name));
     document.querySelectorAll('.cms-nav').forEach((b) => {
-        const on = b.getAttribute('data-section') === name;
-        b.className = `cms-nav w-full text-left px-3 py-2 rounded-lg text-xs font-semibold ${on ? 'bg-primary text-white' : 'hover:bg-slate-800'}`;
+        b.classList.toggle('is-active', b.getAttribute('data-section') === name);
     });
     if (window.innerWidth < 1024) {
         const side = document.getElementById('cmsSidebar');
-        if (side) side.classList.add('-translate-x-full');
+        if (side) {
+            side.classList.remove('is-open');
+            side.classList.add('-translate-x-full');
+        }
         const back = document.getElementById('cmsBackdrop');
         if (back) back.classList.add('hidden');
     }
@@ -54,7 +57,9 @@ function area(name, label, value = '') {
 async function cmsBoot() {
     document.querySelectorAll('.cms-nav').forEach((b) => b.addEventListener('click', () => showCmsSection(b.getAttribute('data-section'))));
     try { cmsDepts = await apiCall('/api/departments?include_inactive=true'); } catch (e) { cmsDepts = await apiCall('/api/departments'); }
-    await Promise.all([cmsLoadStats(), cmsCollegeForm(), cmsPrincipalForm(), cmsDeptList(), cmsStaffUI(), cmsEventUI(), cmsGalleryUI(), cmsNotices(), cmsGrievances()]);
+    await Promise.all([cmsLoadStats(), cmsCollegeForm(), cmsPrincipalForm(), cmsDeptList(), cmsDeptAccounts(), cmsStaffUI(), cmsEventUI(), cmsGalleryUI(), cmsNotices(), cmsTicker(), cmsGrievances(), cmsLoadIIC(), cmsLoadClubs()]);
+    const deptForm = document.getElementById('deptAccountForm');
+    if (deptForm) deptForm.addEventListener('submit', cmsCreateDeptAccount);
     const q = new URLSearchParams(location.search).get('section');
     showCmsSection(q || 'dashboard');
 }
@@ -65,10 +70,14 @@ async function cmsLoadStats() {
     try {
         const s = await apiCall('/api/admin/stats');
         const items = [
-            ['Departments', s.departments], ['Faculty', s.faculty], ['Events', s.events],
-            ['Gallery', s.gallery], ['Notices', s.notices], ['Grievances', s.grievances],
+            ['Departments', s.departments, 'fa-building-columns'],
+            ['Faculty', s.faculty, 'fa-chalkboard-user'],
+            ['Events', s.events, 'fa-calendar-days'],
+            ['Gallery', s.gallery, 'fa-images'],
+            ['Notices', s.notices, 'fa-bullhorn'],
+            ['Grievances', s.grievances, 'fa-comments'],
         ];
-        box.innerHTML = items.map(([k, v]) => `<div class="bg-white border rounded-2xl p-4"><div class="text-[10px] uppercase text-slate-500 font-bold">${k}</div><div class="text-2xl font-extrabold font-heading text-primary">${v}</div></div>`).join('');
+        box.innerHTML = items.map(([k, v, icon]) => `<div class="cms-stat-card"><div class="cms-stat-icon"><i class="fa-solid ${icon}"></i></div><div><div class="text-[10px] uppercase text-slate-500 font-bold">${k}</div><div class="text-2xl font-extrabold font-heading text-primary">${v}</div></div></div>`).join('');
     } catch (e) {
         box.innerHTML = `<p class="text-xs text-secondary">${escapeHTML(e.message)}</p>`;
     }
@@ -230,6 +239,160 @@ function bindDeptForm(form, d) {
 
 function deptOptions(selected) {
     return cmsDepts.map((d) => `<option value="${d.id}" ${String(d.id) === String(selected) ? 'selected' : ''}>${escapeHTML(d.name)} (${escapeHTML(d.code)})</option>`).join('');
+}
+
+let cmsDeptUsers = [];
+
+function cmsFormatWhen(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return escapeHTML(String(value));
+    return date.toLocaleString();
+}
+
+function cmsDeptAccountActions(user) {
+    const active = Number(user.is_active) === 1;
+    return `
+        <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="px-2 py-1 rounded-md border border-slate-300 font-semibold" onclick="cmsShowDeptEditor(${user.id}, 'username')">Username</button>
+            <button type="button" class="px-2 py-1 rounded-md border border-slate-300 font-semibold" onclick="cmsShowDeptEditor(${user.id}, 'password')">Reset password</button>
+            <button type="button" class="px-2 py-1 rounded-md font-semibold ${active ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'}" onclick="cmsToggleDeptAccount(${user.id}, ${active ? 0 : 1})">${active ? 'Deactivate' : 'Activate'}</button>
+        </div>
+        <form class="dept-user-editor hidden mt-2 grid gap-2" data-user="${user.id}" data-mode="username" onsubmit="cmsSaveDeptUsername(event, ${user.id})">
+            <input name="username" value="${escapeHTML(user.username)}" maxlength="32" required class="px-2 py-1.5 rounded-md border border-slate-300" aria-label="New username">
+            <button type="submit" class="bg-primary text-white font-bold px-3 py-1.5 rounded-md w-fit">Save username</button>
+        </form>
+        <form class="dept-user-editor hidden mt-2 grid gap-2" data-user="${user.id}" data-mode="password" onsubmit="cmsResetDeptPassword(event, ${user.id})">
+            <input name="password" type="password" required minlength="8" autocomplete="new-password" class="px-2 py-1.5 rounded-md border border-slate-300" placeholder="New password" aria-label="New password">
+            <input name="confirm_password" type="password" required minlength="8" autocomplete="new-password" class="px-2 py-1.5 rounded-md border border-slate-300" placeholder="Confirm password" aria-label="Confirm password">
+            <button type="submit" class="bg-slate-900 text-white font-bold px-3 py-1.5 rounded-md w-fit">Set new password</button>
+        </form>`;
+}
+
+async function cmsDeptAccounts() {
+    const table = document.getElementById('deptAccountTable');
+    const select = document.getElementById('deptAccountDept');
+    const hint = document.getElementById('deptAccountHint');
+    const submit = document.getElementById('deptAccountSubmit');
+    if (!table) return;
+    cmsDeptUsers = await apiCall('/api/admin/department-users');
+    const taken = new Set(cmsDeptUsers.map((user) => user.department_id));
+    if (select) {
+        const open = cmsDepts.filter((dept) => !taken.has(dept.id));
+        select.innerHTML = open.map((dept) => `<option value="${dept.id}">${escapeHTML(dept.name)} (${escapeHTML(dept.code)})</option>`).join('');
+        select.disabled = open.length === 0;
+        if (submit) submit.disabled = open.length === 0;
+        if (hint && open.length === 0) {
+            hint.textContent = 'Every department already has a login account. Use the list above to change a username, reset a password, or activate or deactivate an account.';
+        }
+    }
+    if (!cmsDeptUsers.length) {
+        table.innerHTML = '<p class="p-4 text-xs text-slate-500">No department login accounts yet.</p>';
+        return;
+    }
+    const rows = cmsDeptUsers.map((user) => {
+        const active = Number(user.is_active) === 1;
+        return `<tr class="border-t border-slate-100 align-top">
+            <td class="p-3 font-semibold">${escapeHTML(user.username)}</td>
+            <td class="p-3">${escapeHTML(user.department_name)} <span class="text-slate-400">(${escapeHTML(user.department_code)})</span></td>
+            <td class="p-3">${active ? '<span class="text-emerald-700 font-bold">Active</span>' : '<span class="text-secondary font-bold">Deactivated</span>'}</td>
+            <td class="p-3 whitespace-nowrap">${cmsFormatWhen(user.created_at)}</td>
+            <td class="p-3">${cmsDeptAccountActions(user)}</td>
+        </tr>`;
+    }).join('');
+    table.innerHTML = `<table class="w-full text-left text-xs min-w-[640px]">
+        <thead class="bg-slate-50 font-bold"><tr>
+            <th class="p-3">Username</th><th class="p-3">Department</th><th class="p-3">Status</th><th class="p-3">Created</th><th class="p-3">Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function cmsShowDeptEditor(id, mode) {
+    document.querySelectorAll('.dept-user-editor').forEach((form) => {
+        const match = String(form.getAttribute('data-user')) === String(id) && form.getAttribute('data-mode') === mode;
+        form.classList.toggle('hidden', !match);
+    });
+}
+
+async function cmsCreateDeptAccount(event) {
+    event.preventDefault();
+    const form = event.target;
+    const body = {
+        department_id: Number(form.department_id.value),
+        username: form.username.value,
+        password: form.password.value,
+        confirm_password: form.confirm_password.value,
+    };
+    try {
+        await apiCall('/api/admin/department-users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        form.username.value = '';
+        form.password.value = '';
+        form.confirm_password.value = '';
+        toast('✓ Department account created');
+        await cmsDeptAccounts();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsSaveDeptUsername(event, id) {
+    event.preventDefault();
+    const username = new FormData(event.target).get('username');
+    try {
+        await apiCall(`/api/admin/department-users/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username }),
+        });
+        toast('✓ Username updated');
+        await cmsDeptAccounts();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsResetDeptPassword(event, id) {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    if (!window.confirm('Reset this password? Existing department sessions for this account will be signed out.')) return;
+    try {
+        await apiCall(`/api/admin/department-users/${id}/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                password: data.get('password'),
+                confirm_password: data.get('confirm_password'),
+            }),
+        });
+        toast('✓ Password reset');
+        await cmsDeptAccounts();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsToggleDeptAccount(id, isActive) {
+    const turningOff = Number(isActive) !== 1;
+    const message = turningOff
+        ? 'Deactivate this account? They cannot log in, and any current session will stop working. Department records stay unchanged.'
+        : 'Activate this department account?';
+    if (!window.confirm(message)) return;
+    try {
+        await apiCall(`/api/admin/department-users/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive }),
+        });
+        toast(turningOff ? '✓ Account deactivated' : '✓ Account activated');
+        await cmsDeptAccounts();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
 }
 
 async function cmsStaffUI() {
@@ -567,6 +730,185 @@ async function cmsDeleteGallery(id) {
         toast('✓ Deleted');
         await cmsGalleryTable();
     } catch (err) { toast('✕ ' + err.message, false); }
+}
+
+let tickerRows = [];
+
+function tickerFormError(message) {
+    const box = document.getElementById('tickerFormError');
+    if (!box) return;
+    box.textContent = message || '';
+    box.classList.toggle('hidden', !message);
+}
+
+function resetTickerForm() {
+    const form = document.getElementById('tickerForm');
+    if (!form) return;
+    form.reset();
+    document.getElementById('tickerEditId').value = '';
+    document.getElementById('tickerActive').checked = true;
+    document.getElementById('tickerSaveBtn').textContent = 'Add notification';
+    document.getElementById('tickerCancelBtn').classList.add('hidden');
+    tickerFormError('');
+}
+
+function renderTickerPreview(rows) {
+    const track = document.getElementById('tickerPreviewTrack');
+    if (!track) return;
+    const active = rows.filter((row) => row.is_active === 1 || row.is_active === true);
+    if (!active.length) {
+        track.innerHTML = '<span class="ticker-note">No active notifications — the public bar will stay empty.</span>';
+        track.style.animation = 'none';
+        return;
+    }
+    track.style.animation = '';
+    if (typeof window.kkmRenderTicker === 'function') {
+        window.kkmRenderTicker(track, active);
+        return;
+    }
+    track.textContent = active.map((row) => row.message).join('    •    ');
+}
+
+function renderTickerList(rows) {
+    const box = document.getElementById('tickerAdminList');
+    if (!box) return;
+    if (!rows.length) {
+        box.innerHTML = '<p class="text-xs text-slate-500 bg-white border border-slate-200 rounded-xl p-4">No scrolling notifications yet.</p>';
+        return;
+    }
+    box.innerHTML = rows.map((row, index) => `
+        <article class="ticker-row ${row.is_active ? '' : 'is-inactive'}">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <p class="text-sm text-slate-800 font-medium leading-snug break-words">${escapeHTML(row.message)}</p>
+                <span class="ticker-status ${row.is_active ? 'on' : 'off'}">${row.is_active ? 'Active' : 'Inactive'}</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Order ${Number(row.display_order)} ${row.link_url ? '· ' + escapeHTML(row.link_url) : ''}</p>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" class="px-2.5 py-1 rounded-lg border border-slate-300 font-semibold" onclick="cmsMoveTicker(${row.id}, -1)" ${index === 0 ? 'disabled' : ''}>Up</button>
+                <button type="button" class="px-2.5 py-1 rounded-lg border border-slate-300 font-semibold" onclick="cmsMoveTicker(${row.id}, 1)" ${index === rows.length - 1 ? 'disabled' : ''}>Down</button>
+                <button type="button" class="px-2.5 py-1 rounded-lg border border-slate-300 font-semibold" onclick="cmsToggleTicker(${row.id})">${row.is_active ? 'Disable' : 'Enable'}</button>
+                <button type="button" class="px-2.5 py-1 rounded-lg border border-primary text-primary font-semibold" onclick="cmsEditTicker(${row.id})">Edit</button>
+                <button type="button" class="px-2.5 py-1 rounded-lg border border-secondary text-secondary font-semibold" onclick="cmsDeleteTicker(${row.id})">Delete</button>
+            </div>
+        </article>`).join('');
+}
+
+async function cmsTicker() {
+    const form = document.getElementById('tickerForm');
+    if (!form || form.dataset.bound === '1') {
+        if (!form) return;
+    } else {
+        form.dataset.bound = '1';
+        form.addEventListener('submit', cmsSaveTicker);
+        document.getElementById('tickerCancelBtn').addEventListener('click', resetTickerForm);
+    }
+    try {
+        tickerRows = await apiCall('/api/scrolling-notifications/manage');
+        renderTickerList(tickerRows);
+        renderTickerPreview(tickerRows);
+    } catch (err) {
+        const box = document.getElementById('tickerAdminList');
+        if (box) box.innerHTML = `<p class="text-xs text-secondary">${escapeHTML(err.message)}</p>`;
+    }
+}
+
+async function cmsSaveTicker(event) {
+    event.preventDefault();
+    tickerFormError('');
+    const button = document.getElementById('tickerSaveBtn');
+    const editId = document.getElementById('tickerEditId').value;
+    const orderRaw = document.getElementById('tickerOrder').value.trim();
+    const payload = {
+        message: document.getElementById('tickerMessage').value.trim(),
+        link_url: document.getElementById('tickerLinkUrl').value.trim(),
+        link_label: document.getElementById('tickerLinkLabel').value.trim(),
+        is_active: document.getElementById('tickerActive').checked ? 1 : 0,
+    };
+    if (orderRaw !== '') payload.display_order = Number(orderRaw);
+    const previous = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Saving…';
+    try {
+        await apiCall(editId ? `/api/scrolling-notifications/${editId}` : '/api/scrolling-notifications', {
+            method: editId ? 'PATCH' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        toast(editId ? '✓ Notification updated' : '✓ Notification added');
+        resetTickerForm();
+        await cmsTicker();
+    } catch (err) {
+        tickerFormError(err.message);
+        toast('✕ ' + err.message, false);
+    } finally {
+        button.disabled = false;
+        button.textContent = document.getElementById('tickerEditId').value ? 'Save changes' : previous === 'Saving…' ? 'Add notification' : previous;
+        if (!document.getElementById('tickerEditId').value) button.textContent = 'Add notification';
+    }
+}
+
+function cmsEditTicker(id) {
+    const row = tickerRows.find((item) => item.id === id);
+    if (!row) return;
+    document.getElementById('tickerEditId').value = String(row.id);
+    document.getElementById('tickerMessage').value = row.message || '';
+    document.getElementById('tickerLinkUrl').value = row.link_url || '';
+    document.getElementById('tickerLinkLabel').value = row.link_label || '';
+    document.getElementById('tickerOrder').value = row.display_order;
+    document.getElementById('tickerActive').checked = !!row.is_active;
+    document.getElementById('tickerSaveBtn').textContent = 'Save changes';
+    document.getElementById('tickerCancelBtn').classList.remove('hidden');
+    tickerFormError('');
+    document.getElementById('tickerForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function cmsToggleTicker(id) {
+    const row = tickerRows.find((item) => item.id === id);
+    if (!row) return;
+    try {
+        await apiCall(`/api/scrolling-notifications/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: row.is_active ? 0 : 1 }),
+        });
+        toast(row.is_active ? '✓ Notification disabled' : '✓ Notification enabled');
+        await cmsTicker();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsMoveTicker(id, direction) {
+    const rows = tickerRows.slice().sort((a, b) => (a.display_order - b.display_order) || (a.id - b.id));
+    const index = rows.findIndex((row) => row.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= rows.length) return;
+    const next = rows.slice();
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    try {
+        await Promise.all(next.map((row, order) => apiCall(`/api/scrolling-notifications/${row.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ display_order: order + 1 }),
+        })));
+        toast('✓ Display order updated');
+        await cmsTicker();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsDeleteTicker(id) {
+    if (!confirm('Delete this scrolling notification? This cannot be undone.')) return;
+    try {
+        await apiCall(`/api/scrolling-notifications/${id}`, { method: 'DELETE' });
+        toast('✓ Notification deleted');
+        if (document.getElementById('tickerEditId').value === String(id)) resetTickerForm();
+        await cmsTicker();
+    } catch (err) {
+        toast('✕ ' + err.message, false);
+    }
 }
 
 async function cmsNotices() {

@@ -374,4 +374,276 @@ class AdminOtpVerify(BaseModel):
         return v
 
 
+def _clean_optional_text(value):
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    return text or None
+
+
+def _reject_markup(value: str, label: str) -> str:
+    if "<" in value or ">" in value:
+        raise ValueError(f"{label} cannot contain HTML")
+    return value
+
+
+def _clean_http_url(value):
+    text = _clean_optional_text(value)
+    if text is None:
+        return None
+    from urllib.parse import urlparse
+    parsed = urlparse(text)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise ValueError("Link must be an http or https URL")
+    if any(ch in text for ch in ("<", ">", '"', "'", " ")):
+        raise ValueError("Link must be an http or https URL")
+    return text
+
+
+class ScrollingNotificationCreate(BaseModel):
+    message: str = Field(..., min_length=1, max_length=400)
+    is_active: int = 1
+    display_order: Optional[int] = Field(default=None, ge=0, le=9999)
+    link_url: Optional[str] = Field(default=None, max_length=400)
+    link_label: Optional[str] = Field(default=None, max_length=80)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def clean_message(cls, v):
+        text = _clean_optional_text(v) if isinstance(v, str) else v
+        if not text:
+            raise ValueError("Message is required")
+        return _reject_markup(str(text), "Message")
+
+    @field_validator("link_label", mode="before")
+    @classmethod
+    def clean_label(cls, v):
+        text = _clean_optional_text(v)
+        if text is None:
+            return None
+        return _reject_markup(text, "Link label")
+
+    @field_validator("link_url", mode="before")
+    @classmethod
+    def clean_url(cls, v):
+        return _clean_http_url(v)
+
+    @field_validator("is_active", mode="before")
+    @classmethod
+    def clean_active(cls, v):
+        if isinstance(v, bool):
+            return 1 if v else 0
+        if v in (None, ""):
+            return 1
+        return 1 if int(v) else 0
+
+
+class ScrollingNotificationUpdate(BaseModel):
+    message: Optional[str] = Field(default=None, min_length=1, max_length=400)
+    is_active: Optional[int] = None
+    display_order: Optional[int] = Field(default=None, ge=0, le=9999)
+    link_url: Optional[str] = Field(default=None, max_length=400)
+    link_label: Optional[str] = Field(default=None, max_length=80)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def clean_message(cls, v):
+        if v is None:
+            return None
+        text = _clean_optional_text(v) if isinstance(v, str) else v
+        if not text:
+            raise ValueError("Message is required")
+        return _reject_markup(str(text), "Message")
+
+    @field_validator("link_label", mode="before")
+    @classmethod
+    def clean_label(cls, v):
+        if v is None:
+            return None
+        text = _clean_optional_text(v)
+        if text is None:
+            return None
+        return _reject_markup(text, "Link label")
+
+    @field_validator("link_url", mode="before")
+    @classmethod
+    def clean_url(cls, v):
+        if v is None:
+            return None
+        return _clean_http_url(v)
+
+    @field_validator("is_active", mode="before")
+    @classmethod
+    def clean_active(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, bool):
+            return 1 if v else 0
+        return 1 if int(v) else 0
+
+
+class ScrollingNotificationPublic(BaseModel):
+    id: int
+    message: str
+    link_url: Optional[str] = None
+    link_label: Optional[str] = None
+    display_order: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class ScrollingNotificationOut(ScrollingNotificationPublic):
+    is_active: int = 1
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+
+class DepartmentLoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=32)
+    password: str = Field(..., min_length=1, max_length=128)
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def clean_login_username(cls, v):
+        return (v or "").strip() if isinstance(v, str) else v
+
+
+class DepartmentMe(BaseModel):
+    id: int
+    username: str
+    department_id: int
+    department_name: str
+    department_code: str
+
+
+class DepartmentUserOut(BaseModel):
+    id: int
+    username: str
+    department_id: int
+    department_name: str
+    department_code: str
+    is_active: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+
+class DepartmentUserCreate(BaseModel):
+    department_id: int
+    username: str = Field(..., min_length=1, max_length=32)
+    password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("username", "password", "confirm_password", mode="before")
+    @classmethod
+    def strip_create(cls, v):
+        return v.strip() if isinstance(v, str) else v
+
+
+class DepartmentUsernameUpdate(BaseModel):
+    username: str = Field(..., min_length=1, max_length=32)
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def strip_username(cls, v):
+        return v.strip() if isinstance(v, str) else v
+
+
+class DepartmentPasswordReset(BaseModel):
+    password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("password", "confirm_password", mode="before")
+    @classmethod
+    def strip_reset(cls, v):
+        return v.strip() if isinstance(v, str) else v
+
+
+class DepartmentStatusUpdate(BaseModel):
+    is_active: int
+
+    @field_validator("is_active", mode="before")
+    @classmethod
+    def clean_status(cls, v):
+        if isinstance(v, bool):
+            return 1 if v else 0
+        return 1 if int(v) else 0
+
+
 DepartmentOut.model_rebuild()
+
+
+class CampusImageOut(BaseModel):
+    id: int
+    image_url: str
+    caption: Optional[str] = None
+    alt_text: Optional[str] = None
+    display_order: int = 0
+    is_published: int = 1
+    event_title: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class IICPageOut(BaseModel):
+    id: int
+    hero_title: str
+    hero_intro: Optional[str] = None
+    hero_image_url: Optional[str] = None
+    about: Optional[str] = None
+    vision: Optional[str] = None
+    mission: Optional[str] = None
+    objectives: Optional[str] = None
+    participation: Optional[str] = None
+    workshops_note: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class IICActivityOut(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    event_date: Optional[str] = None
+    venue: Optional[str] = None
+    category: Optional[str] = None
+    external_url: Optional[str] = None
+    display_order: int = 0
+    is_published: int = 0
+    photos: list[CampusImageOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+class ClubActivityOut(BaseModel):
+    id: int
+    club_id: int
+    title: str
+    description: Optional[str] = None
+    event_date: Optional[str] = None
+    venue: Optional[str] = None
+    display_order: int = 0
+    is_published: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class ClubOut(BaseModel):
+    id: int
+    slug: str
+    name: str
+    intro: Optional[str] = None
+    description: Optional[str] = None
+    display_order: int = 0
+    is_published: int = 1
+    activities: list[ClubActivityOut] = []
+    images: list[CampusImageOut] = []
+
+    class Config:
+        from_attributes = True

@@ -232,7 +232,7 @@ if db.query(models.CollegeInfo).count() == 0:
         address="Kallettumkara P.O., Thrissur District, Kerala - 680 683, India.",
         phone="0480-2720746",
         mobile="8547005080",
-        email="mptmala@ihrd.ac.in",
+        email="mptmala.ihrd@gmail.com",
         website="http://mptmala.ihrd.ac.in",
         youtube_url="https://www.youtube.com/@kkmmptconline7935",
         office_hours="Monday–Saturday, 10:00 AM – 5:00 PM",

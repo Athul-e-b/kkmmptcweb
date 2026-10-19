@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K. Karunakaran Memorial Model Polytechnic College (KKMMPTC) Kallettumkara | IHRD Kerala</title>
+    <link rel="icon" type="image/png" href="images/ihrd.png">
     <meta name="description"
         content="Official Portal of K. Karunakaran Memorial Model Polytechnic College, Kallettumkara, Thrissur. Premier Technical Institute under IHRD, Govt. of Kerala. Offering AICTE approved Diploma programs in Electronics, Biomedical, Computer Science and Technology, Computer Engg, Robotic Process Automation, and Electrical & Electronics.">
     <meta name="keywords"
@@ -28,21 +29,21 @@
                 extend: {
                     colors: {
                         primary: {
-                            DEFAULT: '#0B4F9F',
-                            dark: '#083B78',
-                            light: '#1B62B8'
+                            DEFAULT: '#0066FF',
+                            dark: '#0066FF',
+                            light: '#0066FF'
                         },
                         secondary: {
-                            DEFAULT: '#D62828',
-                            dark: '#B01E1E',
-                            light: '#E63939'
+                            DEFAULT: '#000000',
+                            dark: '#000000',
+                            light: '#000000'
                         },
                         accent: {
-                            DEFAULT: '#FFC107',
-                            dark: '#D4A000',
-                            light: '#FFCD38'
+                            DEFAULT: '#EBEFFB',
+                            dark: '#0066FF',
+                            light: '#F8F9FE'
                         },
-                        bgsoft: '#F8FAFC'
+                        bgsoft: '#F8F9FE'
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -58,24 +59,16 @@
 <body class="antialiased selection:bg-primary selection:text-white">
 
     <!-- TOP ANNOUNCEMENT TICKER -->
-    <div
+    <div id="tickerBar"
         class="bg-primary-dark text-white text-xs py-2 px-4 flex items-center justify-between border-b border-white/10 relative z-50">
         <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div class="flex items-center gap-3 w-full overflow-hidden">
-                <span
+                <span id="tickerLead"
                     class="bg-secondary text-white font-bold px-2.5 py-0.5 rounded text-[11px] uppercase tracking-wider shrink-0 flex items-center gap-1">
                     <i class="fa-solid fa-bell text-[10px] animate-pulse"></i> Notice
                 </span>
-                <div class="overflow-hidden w-full relative">
-                    <div class="animate-marquee font-medium flex gap-8">
-                        <span>🎓 Diploma Admissions 2026-27 under IHRD: Apply Online via Single Window System at
-                            polyadmission.org</span>
-                        <span>⚡ Industry on Campus (IOC) Earn-As-You-Learn Scheme Active across all Engineering
-                            Departments</span>
-                        <span>🏆 KKMMPTC Students Win State Level Technical Paper Presentation Award 2026</span>
-                        <span>📅 Upcoming 3-Day National Workshop on Embedded Systems & Robotics starting next
-                            Monday</span>
-                    </div>
+                <div class="ticker-viewport w-full relative" id="tickerViewport">
+                    <div class="ticker-track font-medium" id="tickerTrack"></div>
                 </div>
             </div>
             <div class="hidden lg:flex items-center gap-4 text-slate-200 shrink-0 ml-4 font-medium">
@@ -100,8 +93,8 @@
                 <a href="tel:8547005080" class="hover:text-primary transition flex items-center gap-2">
                     <i class="fa-solid fa-mobile-screen-button text-primary"></i> +91 8547005080
                 </a>
-                <a href="mailto:mptmala@ihrd.ac.in" class="hover:text-primary transition flex items-center gap-2">
-                    <i class="fa-solid fa-envelope text-primary"></i> mptmala@ihrd.ac.in
+                <a href="mailto:mptmala.ihrd@gmail.com" class="hover:text-primary transition flex items-center gap-2">
+                    <i class="fa-solid fa-envelope text-primary"></i> mptmala.ihrd@gmail.com
                 </a>
                 <span class="flex items-center gap-2 text-slate-500">
                     <i class="fa-regular fa-clock text-primary"></i> Mon - Sat: 9:00 AM - 4:30 PM
@@ -131,14 +124,12 @@
     <!-- MAIN NAVIGATION BAR -->
     <header class="sticky top-0 z-[60] glass-nav border-b border-slate-200 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
-            <div class="nav-bar-row flex items-center justify-between min-h-[4.5rem] lg:h-20 py-2 lg:py-0 gap-2 overflow-visible">
+            <div class="nav-bar-row flex items-center justify-between min-h-[4.5rem] lg:min-h-20 py-2 lg:py-0 gap-2 overflow-visible">
 
                 <!-- BRAND / LOGO -->
                 <a href="index.html" class="site-brand flex items-center gap-2 sm:gap-3 group">
-                    <div
-                        class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 overflow-hidden">
-                        <img src="images/ihrd.png" alt="IHRD Logo"
-                            class="w-full h-full object-contain group-hover:scale-105 transition">
+                    <div class="h-10 w-[3.15rem] sm:h-12 sm:w-[3.8rem] shrink-0">
+                        <img src="images/ihrd.png" alt="IHRD Logo" class="w-full h-full object-contain">
                     </div>
                     <div class="site-brand-text">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -167,7 +158,7 @@
                     <!-- ABOUT DROPDOWN -->
                     <div class="nav-dropdown-trigger relative">
                         <button type="button"
-                            class="px-2.5 py-2 rounded-lg hover:text-primary hover:bg-slate-100 transition flex items-center gap-1"
+                            class="px-2 py-2 rounded-lg hover:text-primary hover:bg-slate-100 transition flex items-center gap-1 whitespace-nowrap"
                             aria-haspopup="true">
                             About <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
                         </button>
@@ -178,7 +169,7 @@
                                 <a href="#events-board"><i
                                         class="fa-solid fa-calendar-star text-[10px] text-primary"></i> Events Board</a>
                                 <a href="#about"><i class="fa-solid fa-circle-info text-[10px] text-primary"></i>
-                                    Institute Profile</a>
+                                    Institution profile</a>
                                 <a href="#vision-mission"><i class="fa-solid fa-bullseye text-[10px] text-primary"></i>
                                     Vision & Mission</a>
                                 <a href="#principal-message"><i
@@ -209,7 +200,7 @@
                     <!-- CAMPUS LIFE DROPDOWN -->
                     <div class="nav-dropdown-trigger relative">
                         <button type="button"
-                            class="px-2.5 py-2 rounded-lg hover:text-primary hover:bg-slate-100 transition flex items-center gap-1 whitespace-nowrap"
+                            class="px-2 py-2 rounded-lg hover:text-primary hover:bg-slate-100 transition flex items-center gap-1 whitespace-nowrap"
                             aria-haspopup="true">
                             Campus Life <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
                         </button>
@@ -226,6 +217,8 @@
                                     Photo Gallery</a>
                                 <a href="#iqac"><i class="fa-solid fa-shield-halved text-[10px] text-primary"></i> IQAC
                                     & Committees</a>
+                                <a href="iic.html"><i class="fa-solid fa-lightbulb text-[10px] text-primary"></i> IIC</a>
+                                <a href="clubs.html"><i class="fa-solid fa-people-group text-[10px] text-primary"></i> Clubs</a>
                             </div>
                         </div>
                     </div>
@@ -236,11 +229,15 @@
                         class="px-2.5 py-2 rounded-lg hover:text-primary hover:bg-slate-100 transition">Contact</a>
                 </nav>
 
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="admin.html"
-                        class="px-3 py-1.5 bg-slate-900 hover:bg-primary text-white rounded-lg transition font-medium flex items-center gap-1.5 shadow text-xs">
-                        <i class="fa-solid fa-user-gear text-xs"></i> <span class="hidden sm:inline">Admin</span>
-                    </a>
+                <div class="header-tools flex items-center gap-1.5 shrink-0">
+                    <div class="header-auth">
+                        <a href="admin.html" class="header-auth-btn header-auth-admin">
+                            <i class="fa-solid fa-user-gear"></i> <span>Admin</span>
+                        </a>
+                        <a href="department-login.html" class="header-auth-btn header-auth-dept">
+                            <i class="fa-solid fa-building-user"></i> <span>Login</span>
+                        </a>
+                    </div>
                     <button type="button" onclick="toggleModal('searchModal')"
                         class="lg:hidden p-2 text-slate-600 hover:text-primary" aria-label="Search">
                         <i class="fa-solid fa-magnifying-glass text-lg"></i>
@@ -257,6 +254,14 @@
         <!-- MOBILE NAVIGATION DRAWER -->
         <div id="mobileMenu"
             class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-2">
+            <div class="header-auth header-auth-menu">
+                <a href="admin.html" class="header-auth-btn header-auth-admin">
+                    <i class="fa-solid fa-user-gear"></i> <span>Admin Portal</span>
+                </a>
+                <a href="department-login.html" class="header-auth-btn header-auth-dept">
+                    <i class="fa-solid fa-building-user"></i> <span>Login</span>
+                </a>
+            </div>
             <a href="index.html" onclick="toggleMobileMenu()"
                 class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-primary bg-primary/5"><i
                     class="fa-solid fa-house mr-2"></i>Home</a>
@@ -291,6 +296,12 @@
             <a href="#iqac" onclick="toggleMobileMenu()"
                 class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-slate-700"><i
                     class="fa-solid fa-shield-halved mr-2 text-primary"></i>IQAC & Committees</a>
+            <a href="iic.html"
+                class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-slate-700"><i
+                    class="fa-solid fa-lightbulb mr-2 text-primary"></i>IIC</a>
+            <a href="clubs.html"
+                class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-slate-700"><i
+                    class="fa-solid fa-people-group mr-2 text-primary"></i>Clubs</a>
             <a href="#downloads" onclick="toggleMobileMenu()"
                 class="block px-3 py-2 rounded-md hover:bg-slate-50 font-medium text-slate-700"><i
                     class="fa-solid fa-download mr-2 text-primary"></i>Downloads & Forms</a>
@@ -303,10 +314,6 @@
                     class="w-full bg-secondary hover:bg-secondary-dark text-white py-2.5 rounded-lg font-semibold text-center text-xs shadow transition">
                     <i class="fa-solid fa-paper-plane mr-1.5"></i> Apply for Admission
                 </a>
-                <a href="admin.html"
-                    class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-lg font-semibold text-center text-xs shadow transition">
-                    <i class="fa-solid fa-user-gear mr-1.5"></i> Admin Portal
-                </a>
             </div>
         </div>
     </header>
@@ -318,15 +325,15 @@
         <div class="absolute inset-0 z-0">
             <div id="slide1"
                 class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100"
-                style="background-image: linear-gradient(to right, rgba(11, 79, 159, 0.88), rgba(15, 23, 42, 0.82)), url('images/college.png');">
+                style="background-image: linear-gradient(to right, rgba(0, 102, 255, 0.82), rgba(0, 0, 0, 0.72)), url('images/college.png');">
             </div>
             <div id="slide2"
                 class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0"
-                style="background-image: linear-gradient(to right, rgba(11, 79, 159, 0.88), rgba(15, 23, 42, 0.82)), url('images/college.png');">
+                style="background-image: linear-gradient(to right, rgba(0, 102, 255, 0.82), rgba(0, 0, 0, 0.72)), url('images/college.png');">
             </div>
             <div id="slide3"
                 class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0"
-                style="background-image: linear-gradient(to right, rgba(11, 79, 159, 0.88), rgba(15, 23, 42, 0.82)), url('images/college.png');">
+                style="background-image: linear-gradient(to right, rgba(0, 102, 255, 0.82), rgba(0, 0, 0, 0.72)), url('images/college.png');">
             </div>
         </div>
 
@@ -599,7 +606,7 @@
                     </div>
                     <div class="pt-6 border-t border-white/20 text-xs text-slate-200">
                         <div><i class="fa-solid fa-envelope mr-1"></i> <span
-                                id="principalEmail">mptmala@ihrd.ac.in</span></div>
+                                id="principalEmail">mptmala.ihrd@gmail.com</span></div>
                         <div><i class="fa-solid fa-phone mr-1"></i> <span id="principalPhone">0480-2720746</span></div>
                     </div>
                 </div>
@@ -672,7 +679,7 @@
             <h2 class="text-3xl font-extrabold font-heading text-slate-900 mt-1">Placements & Industry on Campus (IOC)
             </h2>
             <p class="text-slate-600 text-sm mt-2">Bridging academics with real industry production environments under
-                the Earn as You Learn model.</p>
+                the Earn while you learn model.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm mb-12">
@@ -710,7 +717,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4 text-xs border-t border-white/10 pt-4">
                     <div>
-                        <div class="font-bold text-accent text-base">Earn as You Learn</div>
+                        <div class="font-bold text-accent text-base">Earn while you learn</div>
                         <div class="text-slate-400">Financial Independence</div>
                     </div>
                     <div>
@@ -914,7 +921,7 @@
                             <i class="fa-solid fa-envelope text-accent text-lg mt-1"></i>
                             <div>
                                 <h4 class="font-bold text-white text-sm">Email Address</h4>
-                                <p class="text-slate-300 mt-0.5" data-college="email">mptmala@ihrd.ac.in</p>
+                                <p class="text-slate-300 mt-0.5" data-college="email">mptmala.ihrd@gmail.com</p>
                             </div>
                         </div>
 
@@ -1148,6 +1155,7 @@
     <script src="js/main.js"></script>
     <script src="js/site.js"></script>
     <script src="js/chatbot.js"></script>
+    <script src="js/enhance.js"></script>
 </body>
 
 </html>

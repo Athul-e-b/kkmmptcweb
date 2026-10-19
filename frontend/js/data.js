@@ -14,7 +14,7 @@ const KKM_DATA = {
         campusArea: "12.375 Acres",
         phone: "0480-2720746",
         mobile: "8547005080",
-        email: "mptmala@ihrd.ac.in",
+        email: "mptmala.ihrd@gmail.com",
         website: "http://mptmala.ihrd.ac.in",
         youtube: "https://www.youtube.com/@kkmmptconline7935",
         nearestStation: "Irinjalakuda Railway Station (1.5 km)"
