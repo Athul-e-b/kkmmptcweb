@@ -62,7 +62,7 @@
         document.getElementById('iicIntro').textContent = page.hero_intro || '';
         const figure = document.getElementById('iicHeroFigure');
         if (page.hero_image_url) {
-            figure.innerHTML = '<img class="w-full h-full object-cover" src="' + escapeHTML(page.hero_image_url) + '" alt="' + escapeHTML(page.hero_title || 'IIC') + '">';
+            figure.innerHTML = '<img class="w-full h-full object-cover" data-kkm-fill="cover" src="' + escapeHTML(page.hero_image_url) + '" alt="' + escapeHTML(page.hero_title || 'IIC') + '">';
         } else {
             figure.innerHTML = '<div class="h-full min-h-48 flex flex-col items-center justify-center text-center p-6 text-slate-500"><i class="fa-solid fa-image text-3xl text-primary mb-3" aria-hidden="true"></i><p class="text-sm">No hero photograph has been added yet.</p></div>';
         }

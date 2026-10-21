@@ -208,11 +208,136 @@
         paint();
     }
 
+    function safeImageUrl(src) {
+        if (!src) return '';
+        const value = String(src).trim();
+        if (!value || value === 'about:blank') return '';
+        if (value.indexOf('blob:') === 0 || value.indexOf('data:image/') === 0) return value;
+        try {
+            const parsed = new URL(value, window.location.href);
+            if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+            return parsed.href;
+        } catch (err) {
+            return '';
+        }
+    }
+
+    function hasToken(img, prefix) {
+        return Array.prototype.some.call(img.classList, function (cls) {
+            return cls === prefix || cls.indexOf(prefix) === 0;
+        });
+    }
+
+    function isPhotoFrame(img) {
+        if (img.dataset.kkmFill === 'cover') return false;
+        if (img.closest('.site-brand, #lightboxModal, dialog.campus-lightbox')) return false;
+        if (img.id === 'lightboxImg' || img.id === 'lightboxVideo') return false;
+        if (img.classList.contains('campus-photo')) return true;
+        if (img.id === 'principalPhoto') return true;
+        const round = img.classList.contains('rounded-full');
+        const cover = img.classList.contains('object-cover');
+        const boxed = (hasToken(img, 'w-') && hasToken(img, 'h-')) || (hasToken(img, 'w-') && hasToken(img, 'aspect-'));
+        if (round && (hasToken(img, 'w-') || hasToken(img, 'h-'))) return true;
+        return cover && boxed;
+    }
+
+    function paintFrame(frame, img) {
+        const bg = frame.querySelector('.image-frame__background');
+        if (!bg) return;
+        const safe = safeImageUrl(img.currentSrc || img.getAttribute('src'));
+        bg.style.backgroundImage = safe ? 'url(' + JSON.stringify(safe) + ')' : 'none';
+    }
+
+    function watchFrame(frame, img) {
+        function onLoad() {
+            frame.classList.remove('is-failed');
+            paintFrame(frame, img);
+        }
+        function onError() {
+            frame.classList.add('is-failed');
+            const bg = frame.querySelector('.image-frame__background');
+            if (bg) bg.style.backgroundImage = 'none';
+        }
+        img.addEventListener('load', onLoad);
+        img.addEventListener('error', onError);
+        if (img.complete) {
+            if (img.naturalWidth > 0) onLoad();
+            else if (img.getAttribute('src')) onError();
+        }
+    }
+
+    function frameImage(img) {
+        if (!img || img.dataset.kkmFramed === '1' || !img.parentNode) return;
+        if (!img.getAttribute('src')) return;
+        if (!isPhotoFrame(img)) return;
+        const frame = document.createElement('div');
+        frame.className = 'image-frame';
+        const move = [];
+        img.classList.forEach(function (cls) {
+            if (/^(w-|h-|max-w-|max-h-|min-w-|min-h-|aspect-|rounded-|mx-|my-|mt-|mb-|shrink-0$)/.test(cls)) move.push(cls);
+            if (/^(border|shadow|ring-)/.test(cls)) move.push(cls);
+            if (cls === 'campus-photo' || cls === 'mx-auto') move.push(cls);
+        });
+        move.forEach(function (cls) {
+            frame.classList.add(cls);
+            img.classList.remove(cls);
+        });
+        if (frame.classList.contains('rounded-full') || img.id === 'principalPhoto') frame.classList.add('is-round');
+        img.classList.remove('object-cover');
+        img.classList.add('image-frame__foreground', 'object-contain');
+        img.dataset.kkmFramed = '1';
+        const bg = document.createElement('div');
+        bg.className = 'image-frame__background';
+        bg.setAttribute('aria-hidden', 'true');
+        img.parentNode.insertBefore(frame, img);
+        frame.appendChild(bg);
+        frame.appendChild(img);
+        watchFrame(frame, img);
+    }
+
+    function scanFrames(root) {
+        const scope = root && root.querySelectorAll ? root : document;
+        if (scope instanceof HTMLImageElement) {
+            frameImage(scope);
+            return;
+        }
+        scope.querySelectorAll('img').forEach(frameImage);
+    }
+
+    function initImageFrames() {
+        scanFrames(document);
+        const mo = new MutationObserver(function (records) {
+            records.forEach(function (record) {
+                if (record.type === 'attributes' && record.target instanceof HTMLImageElement) {
+                    const img = record.target;
+                    const frame = img.closest('.image-frame');
+                    if (frame && img.dataset.kkmFramed === '1') {
+                        frame.classList.remove('is-failed');
+                        if (img.complete && img.naturalWidth > 0) paintFrame(frame, img);
+                        else {
+                            const bg = frame.querySelector('.image-frame__background');
+                            if (bg) bg.style.backgroundImage = 'none';
+                        }
+                        return;
+                    }
+                    frameImage(img);
+                    return;
+                }
+                record.addedNodes.forEach(function (node) {
+                    if (node instanceof HTMLImageElement) frameImage(node);
+                    else if (node instanceof Element) scanFrames(node);
+                });
+            });
+        });
+        mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initReveal();
         initTilt();
         initScrollDepth();
         loadPublicTicker();
+        initImageFrames();
     });
 
     window.kkmRenderTicker = applyTicker;
