@@ -159,6 +159,7 @@
     }
 
     function initTilt() {
+        return;
         document.addEventListener('pointermove', function (event) {
             if (!tiltAllowed() || event.pointerType !== 'mouse') {
                 clearTilt(tiltCard);

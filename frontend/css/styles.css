@@ -102,9 +102,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .header-auth-btn:hover {
     background: rgba(242, 245, 253, 0.32);
     box-shadow: 0 8px 22px rgba(65, 105, 225, 0.18);
-    transform: translateY(-1px);
 }
-.header-auth-btn:active { transform: translateY(1px) scale(0.985); }
+.header-auth-btn:active { background: rgba(242, 245, 253, 0.4); }
 .header-auth-btn:focus-visible {
     outline: 2px solid #0066FF;
     outline-offset: 2px;
@@ -243,7 +242,6 @@ header.glass-nav .nav-bar-row {
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-hover-lift:hover {
-    transform: translateY(-6px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
@@ -607,20 +605,9 @@ main .bg-white.rounded-2xl:hover,
     box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.55);
 }
 
-.card-hover-lift:hover,
-.gallery-item:hover {
-    transform: translateY(-4px);
-}
-
-.gallery-item img,
-#homeDeptGrid img,
-#gallery img {
-    transition: transform 0.55s var(--ease-out);
-}
-
 .gallery-item:hover img,
 #homeDeptGrid .group:hover img {
-    transform: scale(1.06);
+    filter: brightness(1.03);
 }
 
 #downloads .flex.gap-2 {
@@ -681,7 +668,7 @@ button:disabled, input:disabled, select:disabled, textarea:disabled {
 }
 
 #chatbotTriggerBtn:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 16px 32px -10px rgba(0, 0, 0, 0.55);
 }
 
 #chatbotWindow {
@@ -798,7 +785,6 @@ button:disabled, input:disabled, select:disabled, textarea:disabled {
 }
 
 .cms-stat-card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
@@ -978,13 +964,12 @@ button:not([aria-label^="Slide"]):not([aria-haspopup="true"]):hover,
 .header-auth-btn:hover {
     background-color: rgba(242, 245, 253, 0.32);
     box-shadow: 0 8px 22px rgba(65, 105, 225, 0.18);
-    transform: translateY(-1px);
 }
 
 button:not([aria-label^="Slide"]):not([aria-haspopup="true"]):active,
 #home .hero-actions > a:active,
 .header-auth-btn:active {
-    transform: translateY(1px) scale(0.985);
+    background-color: rgba(242, 245, 253, 0.45);
 }
 
 button:not([aria-label^="Slide"]):not([aria-haspopup="true"]):focus-visible,
@@ -1302,7 +1287,6 @@ a.bg-slate-900:hover, button.bg-slate-900:hover,
     background-image: none;
     color: #0066FF;
     box-shadow: 0 8px 22px rgba(65, 105, 225, 0.18);
-    transform: translateY(-1px);
 }
 
 .header-auth-btn.header-auth-admin,
@@ -1582,7 +1566,7 @@ input:focus, select:focus, textarea:focus {
     text-align: left;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.campus-grid button:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0, 102, 255, 0.12); }
+.campus-grid button:hover { box-shadow: 0 12px 24px rgba(0, 102, 255, 0.12); }
 .club-jump {
     border-top: 4px solid var(--club-accent, #0066FF);
 }

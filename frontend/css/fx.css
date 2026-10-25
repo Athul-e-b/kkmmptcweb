@@ -2,11 +2,14 @@
    Colors come from styles.css. This file does not replace existing classes. */
 
 :root {
-    --z-top: 40;
-    --z-dock: 45;
-    --z-chat: 50;
+    --z-content: 1;
+    --z-section: 20;
+    --z-bar: 30;
+    --z-dock: 30;
+    --z-top: 35;
     --z-nav: 60;
     --z-drawer: 70;
+    --z-chat: 75;
     --z-modal: 80;
     --z-toast: 90;
 }
@@ -190,83 +193,15 @@ header nav > a.fx-current {
 }
 
 @media (hover: hover) {
-    body.fx-public a.bg-primary:not(.fixed),
-    body.fx-public button.bg-primary:not(.fixed) {
-        position: relative;
-        overflow: hidden;
-        transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    body.fx-public a.bg-primary::after,
-    body.fx-public button.bg-primary::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(110deg, transparent 32%, rgba(255, 255, 255, 0.35) 50%, transparent 68%);
-        transform: translateX(-120%);
-        pointer-events: none;
-    }
-
-    body.fx-public a.bg-primary:hover::after,
-    body.fx-public button.bg-primary:hover::after {
-        animation: fx-shine 0.7s ease;
-    }
-
     body.fx-public a.bg-primary:not(.fixed):hover,
-    body.fx-public button.bg-primary:not(.fixed):hover {
-        transform: scale(1.03);
-        box-shadow:
-            0 8px 16px rgba(0, 0, 0, 0.12),
-            0 14px 28px rgba(0, 102, 255, 0.2);
-    }
-
+    body.fx-public button.bg-primary:not(.fixed):hover,
     #homeDeptGrid > div:hover,
-    #deptContainer > div:hover,
-    #deptContainer > article:hover,
     #eventsBoardGrid > div:hover,
     #noticeBoardGrid > div:hover,
     .gallery-item:hover {
         box-shadow:
             0 10px 18px rgba(0, 0, 0, 0.1),
-            0 18px 36px rgba(0, 102, 255, 0.16),
-            0 0 0 1px rgba(0, 102, 255, 0.4);
-    }
-
-    #homeDeptGrid > div h3,
-    #deptContainer h3 {
-        transition: transform 0.22s ease;
-    }
-
-    #homeDeptGrid > div:hover h3,
-    #deptContainer > div:hover h3,
-    #deptContainer > article:hover h3 {
-        transform: translateX(4px);
-    }
-
-    .image-frame__foreground {
-        transition: transform 0.6s ease;
-    }
-
-    .image-frame:hover .image-frame__foreground {
-        transform: scale(1.045);
-    }
-
-    #homeDeptGrid > div .image-frame::after,
-    #deptContainer .image-frame::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        background: linear-gradient(to top, rgba(0, 102, 255, 0.38), transparent 58%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    #homeDeptGrid > div:hover .image-frame::after,
-    #deptContainer > div:hover .image-frame::after,
-    #deptContainer > article:hover .image-frame::after {
-        opacity: 1;
+            0 18px 36px rgba(0, 102, 255, 0.16);
     }
 
     #noticeBoardGrid > *:hover,
@@ -274,13 +209,6 @@ header nav > a.fx-current {
     #pastEventsGrid > *:hover {
         box-shadow: inset 3px 0 0 var(--color-brand);
     }
-}
-
-body.fx-public a.bg-primary:not(.fixed):active,
-body.fx-public button.bg-primary:not(.fixed):active,
-.fx-top:active,
-.fx-dock a:active {
-    transform: scale(0.97);
 }
 
 .fx-pill {
@@ -316,47 +244,6 @@ body.fx-public textarea:user-invalid {
     background: var(--color-surface-card);
 }
 
-/* ------------------------------------------------------------------ */
-/* 3D                                                                  */
-/* ------------------------------------------------------------------ */
-
-@media (hover: hover) and (pointer: fine) {
-    #homeDeptGrid > div,
-    #deptContainer > div,
-    #deptContainer > article,
-    #eventsBoardGrid > div,
-    .gallery-item,
-    .card-hover-lift {
-        position: relative;
-    }
-
-    #homeDeptGrid > div::before,
-    #deptContainer > div::before,
-    #deptContainer > article::before,
-    #eventsBoardGrid > div::before,
-    .gallery-item::before,
-    .card-hover-lift::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 4;
-        border-radius: inherit;
-        pointer-events: none;
-        background: radial-gradient(circle at var(--fx-x, 50%) var(--fx-y, 50%), rgba(255, 255, 255, 0.42), transparent 42%);
-        opacity: 0;
-        transition: opacity 0.25s ease;
-    }
-
-    #homeDeptGrid > div:hover::before,
-    #deptContainer > div:hover::before,
-    #deptContainer > article:hover::before,
-    #eventsBoardGrid > div:hover::before,
-    .gallery-item:hover::before,
-    .card-hover-lift:hover::before {
-        opacity: 1;
-    }
-}
-
 #chatbotTriggerBtn,
 #chatbotWindow {
     z-index: var(--z-chat);
@@ -366,7 +253,6 @@ body.fx-public textarea:user-invalid {
     box-shadow:
         0 10px 20px rgba(0, 0, 0, 0.16),
         0 0 0 6px rgba(0, 102, 255, 0.14);
-    animation: fx-float 3.6s ease-in-out infinite;
 }
 
 #chatbotWindow:not(.hidden) {
@@ -543,11 +429,13 @@ body.fx-modal-open {
     }
 
     body.fx-has-dock .fx-top {
-        bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
+        left: auto;
+        right: max(0.75rem, env(safe-area-inset-right, 0px));
+        bottom: calc(8.4rem + env(safe-area-inset-bottom, 0px));
     }
 
     body.fx-has-dock #chatbotTriggerBtn {
-        bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px));
     }
 
     body.fx-has-dock #chatbotWindow {
@@ -629,16 +517,6 @@ body.fx-modal-open {
 @keyframes fx-line {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
-}
-
-@keyframes fx-shine {
-    from { transform: translateX(-120%); }
-    to { transform: translateX(120%); }
-}
-
-@keyframes fx-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
 }
 
 @keyframes fx-pulse {

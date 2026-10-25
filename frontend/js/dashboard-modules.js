@@ -170,7 +170,16 @@ async function startDepartmentApp(payload) {
     }
     document.getElementById('dmMenu').onclick = () => document.querySelector('.dm-shell').classList.toggle('dm-open');
     document.querySelector('.dm-backdrop').onclick = () => document.querySelector('.dm-shell').classList.remove('dm-open');
-    document.getElementById('dmCollapse').onclick = () => document.querySelector('.dm-shell').classList.toggle('dm-collapsed');
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') document.querySelector('.dm-shell').classList.remove('dm-open');
+    });
+    document.getElementById('dmCollapse').onclick = (event) => {
+        const shell = document.querySelector('.dm-shell');
+        shell.classList.toggle('dm-collapsed');
+        const collapsed = shell.classList.contains('dm-collapsed');
+        event.currentTarget.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+        event.currentTarget.setAttribute('title', collapsed ? 'Expand' : 'Collapse');
+    };
     document.querySelectorAll('[data-dm-panel]').forEach((button) => {
         button.onclick = () => showPanel(button.getAttribute('data-dm-panel'));
     });
@@ -199,6 +208,7 @@ async function renderHome(main) {
             ['Pending', data.pending, dm.role === 'admin' ? 'approvals' : 'events'],
         ];
         main.innerHTML = `
+            <section class="dm-panel">
             <div class="dm-head"><h2>Dashboard</h2></div>
             <div class="dm-stats">${cards.map(([label, count, panel]) => `<button class="dm-card" data-go="${panel}"><span>${label}</span><h3>${count}</h3></button>`).join('')}</div>
             <div class="dm-actions">
@@ -206,7 +216,8 @@ async function renderHome(main) {
                 <button class="dm-soft" data-go="notices" type="button">Add notice</button>
                 <a class="dm-soft dp-btn" href="departments.html?department=${encodeURIComponent(dm.code)}" target="_blank" rel="noopener">Preview</a>
             </div>
-            <section class="dm-section"><h3>Recent activity</h3><div class="dm-list">${(data.recent || []).map(itemCard).join('') || '<p>No department content yet.</p>'}</div></section>`;
+            <section class="dm-section"><h3>Recent activity</h3><div class="dm-list">${(data.recent || []).map(itemCard).join('') || '<p class="dm-empty">No department content yet.</p>'}</div></section>
+            </section>`;
         main.querySelectorAll('[data-go]').forEach((button) => { button.onclick = () => showPanel(button.getAttribute('data-go')); });
     } catch (err) { main.innerHTML = `<p>${escapeHTML(err.message)}</p>`; }
 }
@@ -248,10 +259,10 @@ async function renderFaculty(main) {
         const photo = person.photo_url ? `<img src="${escapeHTML(person.photo_url)}" alt="" style="width:3rem;height:3rem;border-radius:50%;object-fit:cover">` : '';
         const actions = canEdit ? `<div class="dm-actions"><button class="dm-soft" data-edit="${person.id}" type="button">Edit</button><button class="dm-danger" data-del="${person.id}" type="button">Delete</button></div>` : '';
         return `<article class="dm-card">${photo}<h3>${escapeHTML(person.name)}</h3><p>${escapeHTML(person.role || '')}</p>${actions}</article>`;
-    }).join('') || '<p>No faculty yet.</p>';
+    }).join('') || '<p class="dm-empty">No faculty yet.</p>';
     const add = canEdit ? '<button class="dm-primary" id="dmAddFaculty" type="button">Add new</button>' : '';
     const note = canEdit ? '' : '<p>HOD and faculty details are managed by the administrator.</p>';
-    main.innerHTML = `<div class="dm-head"><h2>HOD and faculty</h2>${add}</div>${note}<div class="dm-list">${cards}</div>`;
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>HOD and faculty</h2>${add}</div>${note}<div class="dm-list">${cards}</div></section>`;
     if (!canEdit) return;
     const open = (person) => openFacultyForm(dept.id, person);
     document.getElementById('dmAddFaculty').onclick = () => open(null);
@@ -317,9 +328,9 @@ function moduleQuery() {
 async function renderModule(main, kind) {
     const mod = DM_MODULES[kind];
     if (!dm.offset) {
-        main.innerHTML = `<div class="dm-head"><h2>${escapeHTML(mod.title)}</h2><button class="dm-primary" id="dmAdd" type="button">Add new</button></div>
+        main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>${escapeHTML(mod.title)}</h2><button class="dm-primary" id="dmAdd" type="button">Add new</button></div>
             <div class="dm-filters"><label>Search<input id="dmSearch" type="search"></label><label>Status<select id="dmStatus"><option value="">All</option><option>draft</option><option>pending</option><option>approved</option><option>rejected</option></select></label><label>Year<input id="dmYear" placeholder="2025-26"></label><label>Category<input id="dmCategory"></label></div>
-            <div id="dmCards"><div class="dm-skel"></div></div><button class="dm-soft" id="dmMore" type="button" hidden>Load more</button>`;
+            <div id="dmCards"><div class="dm-skel"></div></div><button class="dm-soft" id="dmMore" type="button" hidden>Load more</button></section>`;
         document.getElementById('dmAdd').onclick = () => openModuleForm(kind, null);
         ['dmSearch', 'dmStatus', 'dmYear', 'dmCategory'].forEach((id) => {
             document.getElementById(id).onchange = () => { dm.offset = 0; dm.items = []; loadModule(kind); };
@@ -336,7 +347,7 @@ async function loadModule(kind) {
         const page = await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/${kind}?${moduleQuery()}`);
         dm.total = page.total;
         dm.items = dm.offset ? dm.items.concat(page.items) : page.items;
-        box.innerHTML = dm.items.map((item) => moduleCard(kind, item)).join('') || '<p>Nothing here yet.</p>';
+        box.innerHTML = dm.items.map((item) => moduleCard(kind, item)).join('') || '<p class="dm-empty">Nothing here yet.</p>';
         const more = document.getElementById('dmMore');
         if (more) more.hidden = dm.items.length >= dm.total;
         box.querySelectorAll('[data-edit]').forEach((button) => { button.onclick = () => openModuleForm(kind, dm.items.find((item) => String(item.id) === button.getAttribute('data-edit'))); });
@@ -428,7 +439,7 @@ async function renderAccounts(main) {
         dmFetch('/api/admin/department-users'),
         dmFetch('/api/departments'),
     ]);
-    main.innerHTML = `<div class="dm-head"><h2>Login accounts</h2><button class="dm-primary" id="dmAddUser" type="button">Add new</button></div><div class="dm-list">${users.map((user) => `<article class="dm-card"><span class="dm-status ${user.is_active ? 'dm-approved' : 'dm-rejected'}">${user.is_active ? 'Active' : 'Inactive'}</span><h3>${escapeHTML(user.username)}</h3><p>${escapeHTML(user.department_code)} · ${escapeHTML(user.department_name)}</p><div class="dm-actions"><button class="dm-soft" data-user="${user.id}" type="button">Username</button><button class="dm-soft" data-pass="${user.id}" type="button">Reset password</button><button class="dm-danger" data-state="${user.id}" data-active="${user.is_active ? 0 : 1}" type="button">${user.is_active ? 'Deactivate' : 'Activate'}</button></div></article>`).join('') || '<p>No department logins yet.</p>'}</div>`;
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>Login accounts</h2><button class="dm-primary" id="dmAddUser" type="button">Add new</button></div><div class="dm-list">${users.map((user) => `<article class="dm-card"><span class="dm-status ${user.is_active ? 'dm-approved' : 'dm-rejected'}">${user.is_active ? 'Active' : 'Inactive'}</span><h3>${escapeHTML(user.username)}</h3><p>${escapeHTML(user.department_code)} · ${escapeHTML(user.department_name)}</p><div class="dm-actions"><button class="dm-soft" data-user="${user.id}" type="button">Username</button><button class="dm-soft" data-pass="${user.id}" type="button">Reset password</button><button class="dm-danger" data-state="${user.id}" data-active="${user.is_active ? 0 : 1}" type="button">${user.is_active ? 'Deactivate' : 'Activate'}</button></div></article>`).join('') || '<p class="dm-empty">No department logins yet.</p>'}</div></section>`;
     document.getElementById('dmAddUser').onclick = () => accountForm(depts);
     main.querySelectorAll('[data-user]').forEach((button) => { button.onclick = () => renameAccount(button.getAttribute('data-user')); });
     main.querySelectorAll('[data-pass]').forEach((button) => { button.onclick = () => resetAccount(button.getAttribute('data-pass')); });
@@ -499,7 +510,7 @@ async function renderApprovals(main) {
     if (dm.role !== 'admin') { main.innerHTML = '<p>Approvals are for the central admin.</p>'; return; }
     main.innerHTML = '<div class="dm-skel"></div>';
     const page = await dmFetch('/api/department-content/approvals');
-    main.innerHTML = `<div class="dm-head"><h2>Approvals</h2></div><div class="dm-list">${(page.items || []).map((item) => `<article class="dm-card"><span class="dm-status dm-pending">Pending</span><h3>${escapeHTML(item.name || item.title || 'Photo')}</h3><p>${escapeHTML(item.kind)} · ${escapeHTML(item.description || item.summary || item.objectives || '')}</p><div class="dm-actions"><button class="dm-primary" data-approve="${item.kind}:${item.id}" type="button">Approve</button><button class="dm-danger" data-reject="${item.kind}:${item.id}" type="button">Reject</button></div></article>`).join('') || '<p>No items are waiting.</p>'}</div>`;
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>Approvals</h2></div><div class="dm-list">${(page.items || []).map((item) => `<article class="dm-card"><span class="dm-status dm-pending">Pending</span><h3>${escapeHTML(item.name || item.title || 'Photo')}</h3><p>${escapeHTML(item.kind)} · ${escapeHTML(item.description || item.summary || item.objectives || '')}</p><div class="dm-actions"><button class="dm-primary" data-approve="${item.kind}:${item.id}" type="button">Approve</button><button class="dm-danger" data-reject="${item.kind}:${item.id}" type="button">Reject</button></div></article>`).join('') || '<p class="dm-empty">No items are waiting.</p>'}</div></section>`;
     main.querySelectorAll('[data-approve]').forEach((button) => { button.onclick = () => decide(button.getAttribute('data-approve'), true); });
     main.querySelectorAll('[data-reject]').forEach((button) => { button.onclick = () => decide(button.getAttribute('data-reject'), false); });
 }
