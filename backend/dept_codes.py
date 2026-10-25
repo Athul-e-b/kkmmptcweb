@@ -7,6 +7,8 @@ department primary key; only the unique code string changed.
 
 DEPT_CODE_ALIASES = {
     "CM": "CG",
+    "RP": "RPA",
+    "EE": "EEE",
 }
 
 

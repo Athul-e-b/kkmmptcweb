@@ -78,6 +78,16 @@ EXTRA_COLUMNS = {
         "category": "VARCHAR(60)",
         "registration_link": "VARCHAR(255)",
         "status": "VARCHAR(20) DEFAULT 'published'",
+        "event_type": "VARCHAR(60)",
+        "participants_text": "TEXT",
+        "participant_count": "INTEGER",
+        "photo_urls": "TEXT",
+        "review_status": "VARCHAR(20)",
+        "rejection_reason": "TEXT",
+        "academic_year": "VARCHAR(20)",
+        "created_by": "VARCHAR(80)",
+        "approved_by": "VARCHAR(80)",
+        "updated_at": "DATETIME",
     },
     "principal": {
         "qualification": "VARCHAR(200)",
@@ -87,6 +97,13 @@ EXTRA_COLUMNS = {
         "document_url": "VARCHAR(255)",
         "is_published": "INTEGER DEFAULT 1",
         "is_important": "INTEGER DEFAULT 0",
+        "department_id": "INTEGER",
+        "deadline": "VARCHAR(20)",
+        "review_status": "VARCHAR(20)",
+        "rejection_reason": "TEXT",
+        "academic_year": "VARCHAR(20)",
+        "created_by": "VARCHAR(80)",
+        "approved_by": "VARCHAR(80)",
     },
     "gallery_photos": {
         "title": "VARCHAR(200)",
@@ -97,6 +114,11 @@ EXTRA_COLUMNS = {
         "featured": "INTEGER DEFAULT 0",
         "display_order": "INTEGER DEFAULT 0",
         "media_date": "VARCHAR(20)",
+        "review_status": "VARCHAR(20)",
+        "rejection_reason": "TEXT",
+        "academic_year": "VARCHAR(20)",
+        "created_by": "VARCHAR(80)",
+        "approved_by": "VARCHAR(80)",
     },
     "grievances": {
         "course": "VARCHAR(120)",
@@ -135,7 +157,6 @@ def _relax_gallery_image_url_null():
     if not image_col or image_col.get("nullable", True):
         return
     existing = [c["name"] for c in cols]
-    copy_cols = ", ".join(existing)
     with engine.begin() as conn:
         conn.execute(text("PRAGMA foreign_keys=OFF"))
         conn.execute(text("""
@@ -153,9 +174,20 @@ def _relax_gallery_image_url_null():
                 featured INTEGER DEFAULT 0,
                 display_order INTEGER DEFAULT 0,
                 media_date VARCHAR(20),
+                review_status VARCHAR(20),
+                rejection_reason TEXT,
+                academic_year VARCHAR(20),
+                created_by VARCHAR(80),
+                approved_by VARCHAR(80),
                 FOREIGN KEY(department_id) REFERENCES departments (id)
             )
         """))
+        kept = [
+            "id", "category", "caption", "image_url", "created_at", "title", "description",
+            "media_type", "video_url", "department_id", "featured", "display_order", "media_date",
+            "review_status", "rejection_reason", "academic_year", "created_by", "approved_by",
+        ]
+        copy_cols = ", ".join(name for name in existing if name in kept)
         conn.execute(text(
             f"INSERT INTO gallery_photos_new ({copy_cols}) SELECT {copy_cols} FROM gallery_photos"
         ))

@@ -26,8 +26,11 @@ def list_events(
         pass
     elif status:
         q = q.filter(models.Event.status == status)
+        if status == "published":
+            q = q.filter((models.Event.review_status.is_(None)) | (models.Event.review_status == "approved"))
     else:
         q = q.filter((models.Event.status == "published") | (models.Event.status.is_(None)))
+        q = q.filter((models.Event.review_status.is_(None)) | (models.Event.review_status == "approved"))
     q = q.order_by(models.Event.event_date.desc(), models.Event.created_at.desc())
     if limit:
         q = q.limit(limit)

@@ -49,6 +49,7 @@ def list_photos(
         q = q.filter(models.GalleryPhoto.media_type == media_type)
     if featured is not None:
         q = q.filter(models.GalleryPhoto.featured == featured)
+    q = q.filter((models.GalleryPhoto.review_status.is_(None)) | (models.GalleryPhoto.review_status == "approved"))
     q = q.order_by(models.GalleryPhoto.display_order, models.GalleryPhoto.created_at.desc())
     if offset:
         q = q.offset(offset)

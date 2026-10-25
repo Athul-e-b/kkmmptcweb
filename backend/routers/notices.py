@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from database import get_db
+from dept_codes import canonical_dept_code
 from file_storage import DOC_EXT, save_upload, delete_local_file
 import models, schemas, auth
 
@@ -10,8 +11,17 @@ router = APIRouter(prefix="/api/notices", tags=["notices"])
 
 
 @router.get("", response_model=List[schemas.NoticeOut])
-def list_notices(published_only: bool = True, db: Session = Depends(get_db)):
+def list_notices(
+    published_only: bool = True,
+    department: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
     q = db.query(models.Notice)
+    if department:
+        q = q.join(models.Department).filter(models.Department.code == canonical_dept_code(department))
+        q = q.filter((models.Notice.review_status.is_(None)) | (models.Notice.review_status == "approved"))
+    elif published_only:
+        q = q.filter(models.Notice.department_id.is_(None))
     if published_only:
         q = q.filter((models.Notice.is_published == 1) | (models.Notice.is_published.is_(None)))
     return q.order_by(models.Notice.created_at.desc()).all()

@@ -110,6 +110,15 @@ class EventOut(BaseModel):
     status: Optional[str] = "published"
     image_url: Optional[str] = None
     created_at: datetime
+    event_type: Optional[str] = None
+    participants_text: Optional[str] = None
+    participant_count: Optional[int] = None
+    photo_urls: Optional[str] = None
+    review_status: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    academic_year: Optional[str] = None
+    created_by: Optional[str] = None
+    approved_by: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -296,6 +305,13 @@ class NoticeOut(BaseModel):
     is_published: Optional[int] = 1
     is_important: Optional[int] = 0
     created_at: datetime
+    department_id: Optional[int] = None
+    deadline: Optional[str] = None
+    review_status: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    academic_year: Optional[str] = None
+    created_by: Optional[str] = None
+    approved_by: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -343,6 +359,11 @@ class GalleryPhotoOut(BaseModel):
     display_order: Optional[int] = 0
     media_date: Optional[str] = None
     created_at: datetime
+    review_status: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    academic_year: Optional[str] = None
+    created_by: Optional[str] = None
+    approved_by: Optional[str] = None
 
     class Config:
         from_attributes = True

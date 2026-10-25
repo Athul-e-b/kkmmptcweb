@@ -251,3 +251,29 @@ frontend/                Your original static site, plus:
 - **Deploying somewhere other than your own machine** (a real server) needs
   a bit more than `uvicorn --reload` (a process manager, HTTPS, etc.) — let
   me know if/when you're ready for that and I'll walk through it.
+
+## Department content API
+
+New tables are created on startup. New columns on events, notices, and gallery
+are added only when they are missing (`backend/apply_dept_columns.py` does the
+same thing). A blank `review_status` means an older public row. Department
+edits of an approved item go back to `pending` and leave the public page until
+they are approved again.
+
+- `GET /api/department-content/public/{code}` — approved clubs, events, notices, projects, reports, and gallery for one department. No login.
+- `GET /api/department-content/{code}/summary` — counts and recent items. Own department, or a central admin.
+- `GET|POST /api/department-content/{code}/clubs` and `PATCH|DELETE .../clubs/{id}`
+- `GET|POST /api/department-content/{code}/events` and `PATCH|DELETE .../events/{id}`
+- `GET|POST /api/department-content/{code}/notices` and `PATCH|DELETE .../notices/{id}`
+- `GET|POST /api/department-content/{code}/projects` and `PATCH|DELETE .../projects/{id}`
+- `GET|POST /api/department-content/{code}/reports` and `PATCH|DELETE .../reports/{id}`
+- `GET|POST /api/department-content/{code}/gallery` and `DELETE .../gallery/{id}`
+- `POST /api/department-content/{code}/{kind}/{id}/submit` — send an item for approval
+- `PATCH /api/department-content/{code}/profile` — department text, contact, labs, careers, and photo
+- `GET /api/department-content/approvals` — central admin only
+- `POST /api/department-content/approvals/{kind}/{id}/approve`
+- `POST /api/department-content/approvals/{kind}/{id}/reject` — JSON `{"reason": "..."}`
+
+List calls accept `status`, `academic_year`, `search`, `limit`, and `offset`.
+Codes `CM`, `RP`, and `EE` map to `CG`, `RPA`, and `EEE`. Images are jpg, jpeg,
+png, or webp up to 5 MB. Documents are pdf, doc, or docx up to 10 MB.

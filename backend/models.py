@@ -79,6 +79,16 @@ class Event(Base):
     status = Column(String(20), nullable=False, default="published")  # published | draft
     image_url = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    event_type = Column(String(60), nullable=True)
+    participants_text = Column(Text, nullable=True)
+    participant_count = Column(Integer, nullable=True)
+    photo_urls = Column(Text, nullable=True)
+    review_status = Column(String(20), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
+    updated_at = Column(DateTime, nullable=True)
 
     department = relationship("Department", back_populates="events")
 
@@ -174,6 +184,15 @@ class Notice(Base):
     is_published = Column(Integer, default=1)
     is_important = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+    deadline = Column(String(20), nullable=True)
+    review_status = Column(String(20), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
+
+    department = relationship("Department")
 
 
 class ApplicationStatusEnum(str, enum.Enum):
@@ -222,6 +241,11 @@ class GalleryPhoto(Base):
     display_order = Column(Integer, default=0)
     media_date = Column(String(20), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    review_status = Column(String(20), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
 
     department = relationship("Department", back_populates="gallery")
 
@@ -380,5 +404,77 @@ class ClubImage(Base):
     is_published = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     club = relationship("Club", back_populates="images")
+
+
+class DepartmentClub(Base):
+    """A club or association that belongs to one diploma department."""
+    __tablename__ = "department_clubs"
+    id = Column(Integer, primary_key=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    name = Column(String(160), nullable=False)
+    coordinator = Column(String(120), nullable=True)
+    objectives = Column(Text, nullable=True)
+    activities = Column(Text, nullable=True)
+    logo_url = Column(String(255), nullable=True)
+    review_status = Column(String(20), nullable=False, default="pending")
+    rejection_reason = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    members = relationship("DepartmentClubMember", back_populates="club", cascade="all, delete-orphan")
+    department = relationship("Department")
+
+
+class DepartmentClubMember(Base):
+    __tablename__ = "department_club_members"
+    id = Column(Integer, primary_key=True, index=True)
+    club_id = Column(Integer, ForeignKey("department_clubs.id"), nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    role = Column(String(80), nullable=True)
+    year_label = Column(String(40), nullable=True)
+    club = relationship("DepartmentClub", back_populates="members")
+
+
+class DepartmentProject(Base):
+    __tablename__ = "department_projects"
+    id = Column(Integer, primary_key=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    category = Column(String(80), nullable=True)
+    people = Column(Text, nullable=True)
+    event_date = Column(String(20), nullable=True)
+    description = Column(Text, nullable=True)
+    photo_url = Column(String(255), nullable=True)
+    certificate_url = Column(String(255), nullable=True)
+    review_status = Column(String(20), nullable=False, default="pending")
+    rejection_reason = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    department = relationship("Department")
+
+
+class ActivityReport(Base):
+    __tablename__ = "activity_reports"
+    id = Column(Integer, primary_key=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    title = Column(String(200), nullable=False)
+    summary = Column(Text, nullable=True)
+    academic_year = Column(String(20), nullable=True)
+    photo_url = Column(String(255), nullable=True)
+    photo_urls = Column(Text, nullable=True)
+    document_url = Column(String(255), nullable=True)
+    review_status = Column(String(20), nullable=False, default="pending")
+    rejection_reason = Column(Text, nullable=True)
+    created_by = Column(String(80), nullable=True)
+    approved_by = Column(String(80), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    department = relationship("Department")
 
 

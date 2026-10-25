@@ -101,12 +101,11 @@ def require_admin(token: str = Depends(oauth2_scheme)):
     return True
 
 
-def require_department_user(token: str = Depends(oauth2_scheme)):
+def _load_department_user(payload: dict):
     """Department identity comes only from the signed token plus the live database row."""
     from database import SessionLocal
     import models
 
-    payload = _decode_token(token)
     if payload.get("sub") != "department":
         raise HTTPException(status_code=401, detail="Department login required")
     try:
@@ -125,3 +124,27 @@ def require_department_user(token: str = Depends(oauth2_scheme)):
         return user
     finally:
         db.close()
+
+
+def require_department_user(token: str = Depends(oauth2_scheme)):
+    return _load_department_user(_decode_token(token))
+
+
+def require_actor(token: str = Depends(oauth2_scheme)):
+    """Central admin, or the department user stored in the token."""
+    payload = _decode_token(token)
+    if payload.get("sub") == "admin":
+        return {"role": "admin", "user": None, "name": payload.get("phone") or "admin"}
+    if payload.get("sub") == "department":
+        user = _load_department_user(payload)
+        return {"role": "department", "user": user, "name": user.username}
+    raise HTTPException(status_code=401, detail="Login required")
+
+
+def assert_department_access(actor: dict, department_id: int) -> None:
+    """Admin may manage every department. A department user may manage only their own."""
+    if not actor or actor.get("role") == "admin":
+        return
+    user = actor.get("user")
+    if not user or int(user.department_id) != int(department_id):
+        raise HTTPException(status_code=403, detail="You can only manage your own department.")

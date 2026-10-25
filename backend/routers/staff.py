@@ -55,7 +55,7 @@ async def create_staff(
     is_active: int = Form(1),
     is_in_charge: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
-    _admin: bool = Depends(auth.require_admin),
+    actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
     if role not in ("HOD", "Faculty"):
@@ -63,6 +63,7 @@ async def create_staff(
     dept = db.query(models.Department).filter(models.Department.id == department_id).first()
     if not dept:
         raise HTTPException(status_code=400, detail="Invalid department")
+    auth.assert_department_access(actor, department_id)
     name = (name or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
@@ -111,12 +112,15 @@ async def update_staff(
     is_in_charge: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
     remove_photo: str = Form(None),
-    _admin: bool = Depends(auth.require_admin),
+    actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")
+    auth.assert_department_access(actor, staff.department_id)
+    if department_id is not None:
+        auth.assert_department_access(actor, department_id)
     if name is not None:
         staff.name = name.strip()
     if designation is not None:
@@ -155,10 +159,11 @@ async def update_staff(
 
 
 @router.delete("/{staff_id}")
-def delete_staff(staff_id: int, _admin: bool = Depends(auth.require_admin), db: Session = Depends(get_db)):
+def delete_staff(staff_id: int, actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")
+    auth.assert_department_access(actor, staff.department_id)
     delete_local_file(staff.photo_url)
     db.delete(staff)
     db.commit()
