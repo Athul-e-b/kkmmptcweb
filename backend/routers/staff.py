@@ -2,7 +2,7 @@
 Staff & HOD management, scoped per department.
 
 Read (GET) is public — departments.html displays staff/HOD without login.
-Write (POST/PATCH/DELETE) requires the shared admin password (see auth.py).
+Write (POST/PATCH/DELETE, including photo upload) is central admin only.
 Photo upload accepts jpg/png/webp, max 4MB. Exactly one HOD per department.
 """
 from typing import List, Optional
@@ -22,6 +22,12 @@ def _parse_in_charge(value: Optional[str]) -> Optional[int]:
     if value is None:
         return None
     return 1 if str(value).strip().lower() in ("1", "true", "yes", "on") else 0
+
+
+def _require_staff_admin(actor: dict) -> None:
+    """Department users may read staff. Only the central admin may change it."""
+    if not actor or actor.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only the central admin can change HOD and faculty.")
 
 
 def _ensure_single_hod(db: Session, department_id: int, keep_id: Optional[int] = None):
@@ -58,6 +64,7 @@ async def create_staff(
     actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
+    _require_staff_admin(actor)
     if role not in ("HOD", "Faculty"):
         raise HTTPException(status_code=400, detail="role must be HOD or Faculty")
     dept = db.query(models.Department).filter(models.Department.id == department_id).first()
@@ -115,6 +122,7 @@ async def update_staff(
     actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
+    _require_staff_admin(actor)
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")
@@ -160,6 +168,7 @@ async def update_staff(
 
 @router.delete("/{staff_id}")
 def delete_staff(staff_id: int, actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
+    _require_staff_admin(actor)
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")

@@ -243,7 +243,16 @@ async function renderFaculty(main) {
     main.innerHTML = '<div class="dm-skel"></div>';
     const people = await dmFetch(`/api/staff?department=${encodeURIComponent(dm.code)}`);
     const dept = dm.departments.find((item) => item.code === dm.code) || await dmFetch(`/api/departments/${encodeURIComponent(dm.code)}`);
-    main.innerHTML = `<div class="dm-head"><h2>HOD and faculty</h2><button class="dm-primary" id="dmAddFaculty" type="button">Add new</button></div><div class="dm-list">${people.map((person) => `<article class="dm-card">${person.photo_url ? `<img src="${escapeHTML(person.photo_url)}" alt="" style="width:3rem;height:3rem;border-radius:50%;object-fit:cover">` : ''}<h3>${escapeHTML(person.name)}</h3><p>${escapeHTML(person.role || '')}</p><div class="dm-actions"><button class="dm-soft" data-edit="${person.id}" type="button">Edit</button><button class="dm-danger" data-del="${person.id}" type="button">Delete</button></div></article>`).join('') || '<p>No faculty yet.</p>'}</div>`;
+    const canEdit = dm.role === 'admin';
+    const cards = people.map((person) => {
+        const photo = person.photo_url ? `<img src="${escapeHTML(person.photo_url)}" alt="" style="width:3rem;height:3rem;border-radius:50%;object-fit:cover">` : '';
+        const actions = canEdit ? `<div class="dm-actions"><button class="dm-soft" data-edit="${person.id}" type="button">Edit</button><button class="dm-danger" data-del="${person.id}" type="button">Delete</button></div>` : '';
+        return `<article class="dm-card">${photo}<h3>${escapeHTML(person.name)}</h3><p>${escapeHTML(person.role || '')}</p>${actions}</article>`;
+    }).join('') || '<p>No faculty yet.</p>';
+    const add = canEdit ? '<button class="dm-primary" id="dmAddFaculty" type="button">Add new</button>' : '';
+    const note = canEdit ? '' : '<p>HOD and faculty details are managed by the administrator.</p>';
+    main.innerHTML = `<div class="dm-head"><h2>HOD and faculty</h2>${add}</div>${note}<div class="dm-list">${cards}</div>`;
+    if (!canEdit) return;
     const open = (person) => openFacultyForm(dept.id, person);
     document.getElementById('dmAddFaculty').onclick = () => open(null);
     main.querySelectorAll('[data-edit]').forEach((button) => { button.onclick = () => open(people.find((person) => String(person.id) === button.getAttribute('data-edit'))); });
@@ -260,6 +269,7 @@ async function renderFaculty(main) {
 }
 
 function openFacultyForm(departmentId, person) {
+    if (dm.role !== 'admin') return;
     const dialog = document.getElementById('dmSheet');
     dialog.innerHTML = `<form><h2>${person ? 'Edit faculty' : 'Add faculty'}</h2>
         <label>Name<input name="name" required value="${escapeHTML(person && person.name || '')}"></label>
