@@ -140,7 +140,7 @@
         document.addEventListener('pointermove', function (event) {
             if (event.pointerType && event.pointerType !== 'mouse') return;
             var card = event.target.closest('#homeDeptGrid > div, #deptContainer > div, #deptContainer > article, #eventsBoardGrid > div, .gallery-item, .card-hover-lift');
-            if (!card) return;
+            if (!card || card.closest('[data-kkm-no-tilt]')) return;
             var rect = card.getBoundingClientRect();
             card.style.setProperty('--fx-x', ((event.clientX - rect.left) / rect.width * 100).toFixed(1) + '%');
             card.style.setProperty('--fx-y', ((event.clientY - rect.top) / rect.height * 100).toFixed(1) + '%');

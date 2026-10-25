@@ -167,7 +167,7 @@
             }
             const card = event.target.closest(TILT_SELECTOR);
             if (tiltCard && tiltCard !== card) clearTilt(tiltCard);
-            if (!card || card.closest('form, header, #mobileMenu, .fixed') || card.querySelector('form')) {
+            if (!card || card.closest('[data-kkm-no-tilt], form, header, #mobileMenu, .fixed') || card.querySelector('form')) {
                 tiltCard = null;
                 return;
             }
