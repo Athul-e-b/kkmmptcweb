@@ -272,7 +272,7 @@ def _match(row, status: Optional[str], year: Optional[str], search: Optional[str
     if search:
         blob = " ".join(
             str(getattr(row, key, "") or "")
-            for key in ("title", "name", "description", "summary", "caption", "category")
+            for key in ("title", "name", "description", "summary", "caption", "category", "objectives", "activities", "people")
         ).lower()
         if search.lower() not in blob:
             return False
@@ -1003,6 +1003,30 @@ async def create_gallery_photo(
     )
     _stamp_new(row, actor)
     db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _gallery_out(row)
+
+
+@router.patch("/{code}/gallery/{item_id}")
+async def update_gallery_photo(
+    code: str, item_id: int, title: str = Form(None), academic_year: str = Form(None),
+    image: Optional[UploadFile] = File(None),
+    actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db),
+):
+    dept = _dept(db, code)
+    _guard(actor, dept)
+    row = _owned(db, models.GalleryPhoto, item_id, dept)
+    if title is not None:
+        row.title = title.strip() or None
+        row.caption = row.title
+    if academic_year is not None:
+        row.academic_year = academic_year.strip() or None
+    image_url = await _image(image, "gallery")
+    if image_url:
+        delete_local_file(row.image_url)
+        row.image_url = image_url
+    _stamp_edit(row, actor)
     db.commit()
     db.refresh(row)
     return _gallery_out(row)

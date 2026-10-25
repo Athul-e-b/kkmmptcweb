@@ -267,7 +267,7 @@ they are approved again.
 - `GET|POST /api/department-content/{code}/notices` and `PATCH|DELETE .../notices/{id}`
 - `GET|POST /api/department-content/{code}/projects` and `PATCH|DELETE .../projects/{id}`
 - `GET|POST /api/department-content/{code}/reports` and `PATCH|DELETE .../reports/{id}`
-- `GET|POST /api/department-content/{code}/gallery` and `DELETE .../gallery/{id}`
+- `GET|POST /api/department-content/{code}/gallery` and `PATCH|DELETE .../gallery/{id}`
 - `POST /api/department-content/{code}/{kind}/{id}/submit` — send an item for approval
 - `PATCH /api/department-content/{code}/profile` — department text, contact, labs, careers, and photo
 - `GET /api/department-content/approvals` — central admin only

@@ -19,25 +19,54 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/fx.css">
+    <link rel="stylesheet" href="css/dashboard-new.css">
 </head>
-<body class="auth-page antialiased bg-slate-100 min-h-screen">
-    <main class="max-w-3xl mx-auto px-4 py-12">
-        <section id="deptDash" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-            <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+<body class="auth-page dm-app antialiased">
+    <div id="deptDash" class="dm-shell hidden">
+        <aside class="dm-side" id="dmSide">
+            <div class="dm-brand">KKMMPTC <span>Department</span></div>
+            <nav class="dm-nav" aria-label="Dashboard">
+                <button type="button" data-dm-panel="home"><span class="dm-label">Dashboard</span></button>
+                <button type="button" data-dm-panel="details"><span class="dm-label">Department details</span></button>
+                <button type="button" data-dm-panel="faculty"><span class="dm-label">HOD and faculty</span></button>
+                <button type="button" data-dm-panel="clubs"><span class="dm-label">Clubs and associations</span></button>
+                <button type="button" data-dm-panel="events"><span class="dm-label">Activities and events</span></button>
+                <button type="button" data-dm-panel="notices"><span class="dm-label">Notices</span></button>
+                <button type="button" data-dm-panel="projects"><span class="dm-label">Projects and achievements</span></button>
+                <button type="button" data-dm-panel="reports"><span class="dm-label">Activity reports</span></button>
+                <button type="button" data-dm-panel="gallery"><span class="dm-label">Photo gallery</span></button>
+                <button type="button" class="dm-admin-only" data-dm-panel="accounts" hidden><span class="dm-label">Login accounts</span></button>
+                <button type="button" class="dm-admin-only" data-dm-panel="approvals" hidden><span class="dm-label">Approvals</span></button>
+            </nav>
+            <button type="button" id="dmCollapse" class="dm-soft">Collapse</button>
+        </aside>
+        <div class="dm-backdrop"></div>
+        <div>
+            <header class="dm-top">
+                <button type="button" id="dmMenu" class="dm-iconbtn dm-menu" aria-label="Open menu">Menu</button>
                 <div>
-                    <p class="text-[10px] uppercase tracking-wider font-bold text-primary">Signed in</p>
-                    <h1 id="deptTitle" class="font-heading font-bold text-2xl text-slate-900 mt-1">Department</h1>
+                    <h1 id="deptTitle">Department</h1>
+                    <p id="deptSignedInAs"></p>
                 </div>
-                <button type="button" id="deptLogout" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-lg">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
-            </div>
-            <p class="text-sm text-slate-600">Welcome. You are signed in to this department.</p>
-            <p id="deptSignedInAs" class="text-xs text-slate-500 mt-3"></p>
-        </section>
-        <p id="deptDashStatus" class="text-sm text-slate-500">Checking your department session…</p>
-    </main>
+                <select id="dmDeptPick" aria-label="Department" hidden></select>
+                <span id="dmRole" class="dm-role"></span>
+                <button type="button" id="deptLogout" class="dm-danger">Logout</button>
+            </header>
+            <main id="dmMain" class="dm-main"></main>
+        </div>
+        <nav class="dm-tabbar" aria-label="Shortcuts">
+            <button type="button" data-dm-panel="home">Home</button>
+            <button type="button" data-dm-panel="details">Details</button>
+            <button type="button" data-dm-panel="events">Events</button>
+            <button type="button" data-dm-panel="notices">Notices</button>
+        </nav>
+    </div>
+    <p id="deptDashStatus">Checking your department session…</p>
+    <div id="dmToast" class="dm-toast" role="status" hidden></div>
+    <dialog id="dmSheet" class="dm-sheet" aria-label="Editor"></dialog>
+    <dialog id="dmAsk" class="dm-ask" aria-label="Please confirm"></dialog>
     <script src="js/department-auth.js"></script>
+    <script src="js/dashboard-modules.js"></script>
     <script>
         function leaveDashboard() {
             clearDepartmentToken();
@@ -47,6 +76,12 @@
         async function loadDepartmentDashboard() {
             const status = document.getElementById('deptDashStatus');
             if (!getDepartmentToken()) {
+                if (sessionStorage.getItem('kkm_dept_admin_token')) {
+                    document.getElementById('deptDash').classList.remove('hidden');
+                    status.classList.add('hidden');
+                    startDepartmentApp({ role: 'admin' });
+                    return;
+                }
                 leaveDashboard();
                 return;
             }
@@ -56,11 +91,10 @@
                     leaveDashboard();
                     return;
                 }
-                document.getElementById('deptTitle').textContent = 'Department ' + data.department_name;
                 document.title = 'Department ' + data.department_name;
-                document.getElementById('deptSignedInAs').textContent = 'Account: ' + data.username;
                 document.getElementById('deptDash').classList.remove('hidden');
                 status.classList.add('hidden');
+                startDepartmentApp({ role: 'department', me: data });
             } catch (err) {
                 status.textContent = 'Could not reach the server.';
             }
@@ -69,6 +103,11 @@
         document.getElementById('deptLogout').addEventListener('click', async () => {
             const button = document.getElementById('deptLogout');
             button.disabled = true;
+            if (window.dmIsAdmin && dmIsAdmin()) {
+                sessionStorage.removeItem('kkm_dept_admin_token');
+                window.location.replace('admin-login.html');
+                return;
+            }
             try {
                 await departmentApi('/api/department-auth/logout', { method: 'POST' });
             } catch (err) { /* still clear the local session */ }
