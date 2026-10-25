@@ -18,10 +18,16 @@
 html {
     scroll-padding-top: calc(var(--navbar-offset, 4.75rem) + 0.5rem);
     scrollbar-color: var(--color-brand) var(--color-surface-card);
+    overflow-x: clip;
 }
 
 body.fx-public {
     min-height: 100dvh;
+    overflow-x: clip;
+}
+
+body.fx-public > section,
+body.fx-public > main {
     animation: fx-page-in 0.45s ease;
 }
 
@@ -81,13 +87,13 @@ header.sticky.fx-scrolled .site-brand > div:first-child {
     pointer-events: auto;
 }
 
-body.fx-public main section h2.font-heading {
+body.fx-public section h2.font-heading {
     position: relative;
     padding-bottom: 0.55rem;
     font-size: clamp(1.35rem, 1.05rem + 1.5vw, 1.875rem);
 }
 
-body.fx-public main section h2.font-heading::after {
+body.fx-public section h2.font-heading::after {
     content: "";
     position: absolute;
     left: 0;
@@ -184,8 +190,8 @@ header nav > a.fx-current {
 }
 
 @media (hover: hover) {
-    body.fx-public a.bg-primary,
-    body.fx-public button.bg-primary {
+    body.fx-public a.bg-primary:not(.fixed),
+    body.fx-public button.bg-primary:not(.fixed) {
         position: relative;
         overflow: hidden;
         transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
@@ -206,8 +212,8 @@ header nav > a.fx-current {
         animation: fx-shine 0.7s ease;
     }
 
-    body.fx-public a.bg-primary:hover,
-    body.fx-public button.bg-primary:hover {
+    body.fx-public a.bg-primary:not(.fixed):hover,
+    body.fx-public button.bg-primary:not(.fixed):hover {
         transform: scale(1.03);
         box-shadow:
             0 8px 16px rgba(0, 0, 0, 0.12),
@@ -270,8 +276,8 @@ header nav > a.fx-current {
     }
 }
 
-body.fx-public a.bg-primary:active,
-body.fx-public button.bg-primary:active,
+body.fx-public a.bg-primary:not(.fixed):active,
+body.fx-public button.bg-primary:not(.fixed):active,
 .fx-top:active,
 .fx-dock a:active {
     transform: scale(0.97);
@@ -484,7 +490,7 @@ body.fx-modal-open {
 }
 
 @media (max-width: 767px) {
-    body.fx-public main table {
+    body.fx-public table {
         display: block;
         max-width: 100%;
         overflow-x: auto;
@@ -661,8 +667,9 @@ body.fx-modal-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    body.fx-public,
-    body.fx-public main section h2.font-heading::after,
+    body.fx-public > section,
+    body.fx-public > main,
+    body.fx-public section h2.font-heading::after,
     .fx-arrive,
     .fx-shimmer,
     #chatbotTriggerBtn,

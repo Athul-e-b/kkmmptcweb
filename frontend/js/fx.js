@@ -22,6 +22,8 @@
     var topBtn = document.createElement('button');
     topBtn.type = 'button';
     topBtn.className = 'fx-top';
+    topBtn.tabIndex = -1;
+    topBtn.setAttribute('aria-hidden', 'true');
     topBtn.setAttribute('aria-label', 'Back to top');
     topBtn.innerHTML = '<i class="fa-solid fa-chevron-up" aria-hidden="true"></i>';
     topBtn.addEventListener('click', function () {
@@ -38,7 +40,10 @@
         var ratio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
         progress.style.transform = 'scaleX(' + ratio + ')';
         if (header) header.classList.toggle('fx-scrolled', window.scrollY > 12);
-        topBtn.classList.toggle('is-on', window.scrollY > 420);
+        var showTop = window.scrollY > 420;
+        topBtn.classList.toggle('is-on', showTop);
+        topBtn.tabIndex = showTop ? 0 : -1;
+        topBtn.setAttribute('aria-hidden', showTop ? 'false' : 'true');
         if (typeof updateNavbarOffset === 'function' && document.body.classList.contains('nav-open')) {
             updateNavbarOffset();
         }
@@ -356,12 +361,19 @@
         });
     }
 
+    function nameChat() {
+        var btn = document.getElementById('chatbotTriggerBtn');
+        var title = document.querySelector('#chatbotWindow h3');
+        if (btn && title && !btn.getAttribute('aria-label')) btn.setAttribute('aria-label', title.textContent.trim());
+    }
+
     function scan(root) {
         if (admin) return;
         scanCounters(root || document);
         markLoading(document);
         lazyImages(root || document);
         markPills(root || document);
+        nameChat();
         syncModalLock();
     }
 
