@@ -82,6 +82,7 @@ EXTRA_COLUMNS = {
         "participants_text": "TEXT",
         "participant_count": "INTEGER",
         "photo_urls": "TEXT",
+        "club_id": "INTEGER",
         "review_status": "VARCHAR(20)",
         "rejection_reason": "TEXT",
         "academic_year": "VARCHAR(20)",
@@ -126,6 +127,42 @@ EXTRA_COLUMNS = {
         "created_at": "DATETIME",
         "updated_at": "DATETIME",
     },
+    "department_users": {
+        "name": "VARCHAR(120)",
+        "designation": "VARCHAR(120)",
+        "email": "VARCHAR(160)",
+    },
+    "department_clubs": {
+        "description": "TEXT",
+        "category": "VARCHAR(80)",
+        "faculty_in_charge": "VARCHAR(120)",
+        "established_on": "VARCHAR(40)",
+        "meeting_info": "TEXT",
+        "cover_url": "VARCHAR(255)",
+        "is_active": "INTEGER DEFAULT 1",
+    },
+    "clubs": {
+        "category": "VARCHAR(40)",
+        "club_type": "VARCHAR(20) DEFAULT 'campus'",
+        "department_id": "INTEGER",
+        "status": "VARCHAR(20) DEFAULT 'draft'",
+        "is_active": "INTEGER DEFAULT 1",
+        "objectives": "TEXT",
+        "activities_text": "TEXT",
+        "meeting_info": "TEXT",
+        "established_on": "VARCHAR(40)",
+        "coordinator": "VARCHAR(120)",
+        "faculty_in_charge": "VARCHAR(120)",
+        "contact_info": "TEXT",
+        "logo_url": "VARCHAR(255)",
+        "cover_url": "VARCHAR(255)",
+    },
+    "department_club_members": {
+        "admission_number": "VARCHAR(40)",
+        "semester": "VARCHAR(40)",
+        "photo_url": "VARCHAR(255)",
+        "is_active": "INTEGER DEFAULT 1",
+    },
 }
 
 
@@ -143,6 +180,12 @@ def ensure_sqlite_columns():
                 if name not in existing:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
     _relax_gallery_image_url_null()
+
+    if "department_clubs" in inspect(engine).get_table_names():
+        with engine.begin() as conn:
+            conn.execute(text(
+                "UPDATE department_clubs SET review_status = 'approved' WHERE review_status = 'pending'"
+            ))
 
 
 def _relax_gallery_image_url_null():
@@ -197,21 +240,71 @@ def _relax_gallery_image_url_null():
         conn.execute(text("PRAGMA foreign_keys=ON"))
 
 
+def _allow_three_department_users():
+    """Drop the one-account-per-department unique rule and keep email unique."""
+    if not SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+        return
+    inspector = inspect(engine)
+    if "department_users" not in inspector.get_table_names():
+        return
+    table_sql = ""
+    with engine.connect() as conn:
+        table_sql = conn.execute(text(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='department_users'"
+        )).scalar() or ""
+    unique_on_department = "department_id" in table_sql.lower() and "unique" in table_sql.lower()
+    indexed = any(
+        item.get("unique") and item.get("column_names") == ["department_id"]
+        for item in inspector.get_indexes("department_users")
+    )
+    if not unique_on_department and not indexed:
+        return
+    existing = [c["name"] for c in inspector.get_columns("department_users")]
+    with engine.begin() as conn:
+        conn.execute(text("PRAGMA foreign_keys=OFF"))
+        conn.execute(text("""
+            CREATE TABLE department_users_new (
+                id INTEGER NOT NULL PRIMARY KEY,
+                department_id INTEGER NOT NULL,
+                username VARCHAR(32) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                token_version INTEGER NOT NULL DEFAULT 1,
+                created_at DATETIME,
+                updated_at DATETIME,
+                name VARCHAR(120),
+                designation VARCHAR(120),
+                email VARCHAR(160),
+                FOREIGN KEY(department_id) REFERENCES departments (id)
+            )
+        """))
+        kept = [
+            "id", "department_id", "username", "password_hash", "is_active",
+            "token_version", "created_at", "updated_at", "name", "designation", "email",
+        ]
+        copy_cols = ", ".join(name for name in existing if name in kept)
+        conn.execute(text(
+            f"INSERT INTO department_users_new ({copy_cols}) SELECT {copy_cols} FROM department_users"
+        ))
+        conn.execute(text("DROP TABLE department_users"))
+        conn.execute(text("ALTER TABLE department_users_new RENAME TO department_users"))
+        conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_department_users_username ON department_users (username)"))
+        conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_department_users_email ON department_users (email)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_department_users_department_id ON department_users (department_id)"))
+        conn.execute(text("PRAGMA foreign_keys=ON"))
+
+
 PLACEHOLDER = (
     "Placeholder — replace this in the admin panel. This is not an official college statement."
 )
 
-CLUB_SEEDS = (
-    ("music", "Music Club", 1, "music, performance, and listening activities the college chooses to publish"),
-    ("sports", "Sports Club", 2, "sporting activities, practice, and college sports days the office chooses to publish"),
-    ("arts", "Arts Club", 3, "artistic and cultural activities the college chooses to publish"),
-    ("coding", "Coding Club", 4, "coding, programming, and collaborative learning the college chooses to publish"),
-)
+RETIRED_CLUB_SLUGS = ("music", "sports", "arts", "coding")
 
 
 def seed_campus_pages_if_missing():
-    """Insert the IIC page and four clubs only when those rows are absent."""
+    """Insert the IIC page when it is missing, and retire the old placeholder clubs."""
     import models
+    from file_storage import delete_local_file
     db = SessionLocal()
     try:
         if db.query(models.IICPage).count() == 0:
@@ -228,18 +321,15 @@ def seed_campus_pages_if_missing():
                 participation=PLACEHOLDER + " Describe how students take part and develop ideas.",
                 workshops_note=PLACEHOLDER + " Describe workshops, seminars, competitions, and related events.",
             ))
-        existing = {row.slug for row in db.query(models.Club.slug).all()}
-        for slug, name, order, focus in CLUB_SEEDS:
-            if slug in existing:
-                continue
-            db.add(models.Club(
-                slug=slug,
-                name=name,
-                display_order=order,
-                is_published=1,
-                intro=PLACEHOLDER + f" Introduce the {name}.",
-                description=PLACEHOLDER + f" Describe {focus}. Do not add results, awards, or participation that the college has not supplied.",
-            ))
+        old_clubs = db.query(models.Club).filter(models.Club.slug.in_(RETIRED_CLUB_SLUGS)).all()
+        for club in old_clubs:
+            for image in list(club.images):
+                delete_local_file(image.image_url)
+            delete_local_file(club.logo_url)
+            delete_local_file(club.cover_url)
+            for member in list(club.members):
+                delete_local_file(member.photo_url)
+            db.delete(club)
         db.commit()
     except Exception:
         db.rollback()

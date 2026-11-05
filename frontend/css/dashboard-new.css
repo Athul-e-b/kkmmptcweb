@@ -196,6 +196,9 @@
 .dm-app form label:has(textarea[name="eligibility"]),
 .dm-app form label:has(textarea[name="objectives"]),
 .dm-app form label:has(textarea[name="activities"]),
+.dm-app form label:has(textarea[name="intro"]),
+.dm-app form label:has(textarea[name="activities_text"]),
+.dm-app form label:has(textarea[name="meeting_info"]),
 .dm-app form label:has(textarea[name="participants_text"]),
 .dm-app form label:has(textarea[name="summary"]),
 .dm-app form label:has(input[type="file"]) {

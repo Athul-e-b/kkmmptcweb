@@ -1,6 +1,8 @@
 let cmsIICData = null;
 let cmsClubsData = [];
-let cmsClubSlug = 'music';
+let cmsClubId = null;
+let cmsClubEditing = false;
+const CMS_CLUB_CATEGORIES = ['Technical', 'Cultural', 'Sports', 'Arts', 'Music', 'Social', 'Other'];
 
 function campusInput(name, label, value) {
     return `<label class="block text-xs font-semibold text-slate-700">${label}<input name="${name}" value="${escapeHTML(value || '')}" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"></label>`;
@@ -195,122 +197,11 @@ async function cmsLoadClubs() {
     const box = document.getElementById('clubsAdmin');
     if (!box) return;
     try {
+        if (!window.cmsDepartments) window.cmsDepartments = await apiCall('/api/departments?include_inactive=true');
         cmsClubsData = await apiCall('/api/admin/clubs');
-        if (!cmsClubsData.some((club) => club.slug === cmsClubSlug) && cmsClubsData[0]) cmsClubSlug = cmsClubsData[0].slug;
+        if (cmsClubId && !cmsClubsData.some((club) => club.id === cmsClubId)) cmsClubId = null;
         renderClubsAdmin();
     } catch (err) {
         box.innerHTML = `<p class="text-sm text-secondary">${escapeHTML(err.message)}</p>`;
     }
-}
-
-function renderClubsAdmin() {
-    const box = document.getElementById('clubsAdmin');
-    const club = cmsClubsData.find((item) => item.slug === cmsClubSlug) || cmsClubsData[0];
-    if (!club) {
-        box.innerHTML = '<p class="text-sm text-slate-500">No clubs are available.</p>';
-        return;
-    }
-    const tabs = cmsClubsData.map((item) => `<button type="button" class="px-3 py-2 rounded-lg text-xs font-bold ${item.slug === club.slug ? 'bg-primary text-white' : ''}" onclick="selectClub('${item.slug}')">${escapeHTML(item.name)}</button>`).join('');
-    const activities = (club.activities || []).map((item) => `
-        <form data-club-activity="${item.id}" class="border rounded-xl p-4 grid sm:grid-cols-2 gap-3">
-            ${campusInput('title', 'Title', item.title)}
-            ${campusInput('event_date', 'Date', item.event_date)}
-            ${campusInput('venue', 'Venue', item.venue)}
-            ${campusInput('display_order', 'Order', item.display_order)}
-            ${campusStatus(item.is_published)}
-            ${campusArea('description', 'Description', item.description)}
-            <div class="flex gap-2"><button class="text-xs font-bold px-3 py-2 rounded-lg bg-primary text-white">Save activity</button><button type="button" class="text-xs font-bold px-3 py-2 rounded-lg" onclick="deleteClubActivity(${item.id})">Delete</button></div>
-        </form>`).join('') || '<p class="text-sm text-slate-500">No activities for this club.</p>';
-    const images = (club.images || []).map((item) => `
-        <form data-club-image="${item.id}" class="border rounded-xl p-3 grid gap-2">
-            <img src="${escapeHTML(item.image_url)}" alt="" class="w-full aspect-video object-cover rounded-lg">
-            ${campusInput('caption', 'Caption', item.caption)}
-            ${campusInput('alt_text', 'Alternative text', item.alt_text)}
-            ${campusInput('display_order', 'Order', item.display_order)}
-            ${campusStatus(item.is_published)}
-            <div class="flex gap-2"><button class="text-xs font-bold px-3 py-2 rounded-lg bg-primary text-white">Save photo</button><button type="button" class="text-xs font-bold px-3 py-2 rounded-lg" onclick="deleteClubImage(${item.id})">Delete</button></div>
-        </form>`).join('') || '<p class="text-sm text-slate-500">This club gallery is empty.</p>';
-    box.innerHTML = `
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="font-heading font-bold text-lg">Clubs Management</h2>
-            <a href="clubs.html#${escapeHTML(club.slug)}" target="_blank" rel="noopener" class="text-xs font-semibold text-primary">Preview ${escapeHTML(club.name)}</a>
-        </div>
-        <div class="flex flex-wrap gap-2">${tabs}</div>
-        <form id="clubPageForm" class="bg-white rounded-2xl border p-5 grid sm:grid-cols-2 gap-3">
-            <h3 class="sm:col-span-2 font-bold">Editing ${escapeHTML(club.name)}</h3>
-            <p class="sm:col-span-2 text-xs text-slate-500">Photographs added here stay with this club only.</p>
-            ${campusInput('name', 'Club name', club.name)}
-            ${campusInput('display_order', 'Display order', club.display_order)}
-            ${campusStatus(club.is_published)}
-            ${campusArea('intro', 'Introduction', club.intro)}
-            ${campusArea('description', 'Full description', club.description)}
-            <button class="bg-primary text-white font-bold px-4 py-2 rounded-lg text-sm">Save club</button>
-        </form>
-        <form id="clubActivityForm" class="bg-white rounded-2xl border p-5 grid sm:grid-cols-2 gap-3">
-            <h3 class="sm:col-span-2 font-bold">Add activity</h3>
-            ${campusInput('title', 'Title', '')}
-            ${campusInput('event_date', 'Date', '')}
-            ${campusInput('venue', 'Venue', '')}
-            ${campusInput('display_order', 'Order', '0')}
-            ${campusStatus(0)}
-            ${campusArea('description', 'Description', '')}
-            <button class="bg-primary text-white font-bold px-4 py-2 rounded-lg text-sm">Add activity</button>
-        </form>
-        <div class="space-y-3">${activities}</div>
-        <form id="clubGalleryForm" class="bg-white rounded-2xl border p-5 grid sm:grid-cols-2 gap-3">
-            <h3 class="sm:col-span-2 font-bold">${escapeHTML(club.name)} gallery</h3>
-            ${campusInput('caption', 'Caption', '')}
-            ${campusInput('alt_text', 'Alternative text', '')}
-            ${campusInput('display_order', 'Order', '0')}
-            ${campusStatus(1)}
-            <label class="text-xs font-semibold sm:col-span-2">Photographs<input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple required class="mt-1 block w-full text-xs"></label>
-            <button class="bg-primary text-white font-bold px-4 py-2 rounded-lg text-sm">Upload to ${escapeHTML(club.name)}</button>
-        </form>
-        <div class="grid sm:grid-cols-2 gap-3">${images}</div>`;
-    document.getElementById('clubPageForm').onsubmit = saveClubPage;
-    document.getElementById('clubActivityForm').onsubmit = createClubActivity;
-    document.getElementById('clubGalleryForm').onsubmit = uploadClubGallery;
-    document.querySelectorAll('[data-club-activity]').forEach((form) => { form.onsubmit = saveClubActivity; });
-    document.querySelectorAll('[data-club-image]').forEach((form) => { form.onsubmit = saveClubImage; });
-}
-
-function selectClub(slug) {
-    cmsClubSlug = slug;
-    renderClubsAdmin();
-}
-
-async function saveClubPage(event) {
-    event.preventDefault();
-    try { await campusSubmit('/api/admin/clubs/' + cmsClubSlug, 'PATCH', event.target); toast('✓ Club saved'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function createClubActivity(event) {
-    event.preventDefault();
-    try { await campusSubmit('/api/admin/clubs/' + cmsClubSlug + '/activities', 'POST', event.target); toast('✓ Activity added'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function saveClubActivity(event) {
-    event.preventDefault();
-    try { await campusSubmit('/api/admin/clubs/' + cmsClubSlug + '/activities/' + event.target.dataset.clubActivity, 'PATCH', event.target); toast('✓ Activity saved'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function deleteClubActivity(id) {
-    if (!confirm('Delete this club activity?')) return;
-    try { await apiCall('/api/admin/clubs/' + cmsClubSlug + '/activities/' + id, { method: 'DELETE' }); toast('✓ Activity deleted'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function uploadClubGallery(event) {
-    event.preventDefault();
-    try { await campusSubmit('/api/admin/clubs/' + cmsClubSlug + '/gallery', 'POST', event.target); toast('✓ Photographs added'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function saveClubImage(event) {
-    event.preventDefault();
-    try { await campusSubmit('/api/admin/clubs/' + cmsClubSlug + '/gallery/' + event.target.dataset.clubImage, 'PATCH', event.target); toast('✓ Photograph saved'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
-}
-async function deleteClubImage(id) {
-    if (!confirm('Delete this photograph from the selected club?')) return;
-    try { await apiCall('/api/admin/clubs/' + cmsClubSlug + '/gallery/' + id, { method: 'DELETE' }); toast('✓ Photograph deleted'); await cmsLoadClubs(); }
-    catch (err) { toast('✕ ' + err.message, false); }
 }

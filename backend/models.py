@@ -42,7 +42,7 @@ class Department(Base):
     staff = relationship("Staff", back_populates="department", cascade="all, delete-orphan")
     events = relationship("Event", back_populates="department")
     gallery = relationship("GalleryPhoto", back_populates="department")
-    login_account = relationship("DepartmentUser", back_populates="department", uselist=False)
+    login_accounts = relationship("DepartmentUser", back_populates="department")
 
 
 class Staff(Base):
@@ -83,6 +83,7 @@ class Event(Base):
     participants_text = Column(Text, nullable=True)
     participant_count = Column(Integer, nullable=True)
     photo_urls = Column(Text, nullable=True)
+    club_id = Column(Integer, ForeignKey("department_clubs.id"), nullable=True, index=True)
     review_status = Column(String(20), nullable=True)
     rejection_reason = Column(Text, nullable=True)
     academic_year = Column(String(20), nullable=True)
@@ -265,18 +266,21 @@ class ScrollingNotification(Base):
 
 class DepartmentUser(Base):
     """One login account for an existing department. The department row stays authoritative."""
+    """Up to three login accounts for an existing department."""
     __tablename__ = "department_users"
     id = Column(Integer, primary_key=True, index=True)
-    department_id = Column(Integer, ForeignKey("departments.id"), unique=True, nullable=False, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
     username = Column(String(32), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
+    name = Column(String(120), nullable=True)
+    designation = Column(String(120), nullable=True)
+    email = Column(String(160), nullable=True, unique=True, index=True)
     is_active = Column(Integer, nullable=False, default=1)
     token_version = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    department = relationship("Department", back_populates="login_account")
-
+    department = relationship("Department", back_populates="login_accounts")
 
 class AdminUser(Base):
     """
@@ -363,8 +367,30 @@ class Club(Base):
     intro = Column(Text, nullable=True)
     description = Column(Text, nullable=True)
     display_order = Column(Integer, nullable=False, default=0)
+    category = Column(String(40), nullable=True)
+    club_type = Column(String(20), nullable=False, default="campus")
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+    status = Column(String(20), nullable=False, default="draft")
+    is_active = Column(Integer, nullable=False, default=1)
+    objectives = Column(Text, nullable=True)
+    activities_text = Column(Text, nullable=True)
+    meeting_info = Column(Text, nullable=True)
+    established_on = Column(String(40), nullable=True)
+    coordinator = Column(String(120), nullable=True)
+    faculty_in_charge = Column(String(120), nullable=True)
+    contact_info = Column(Text, nullable=True)
+    logo_url = Column(String(255), nullable=True)
+    cover_url = Column(String(255), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
     is_published = Column(Integer, nullable=False, default=1)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    department = relationship("Department")
+    members = relationship(
+        "ClubMember",
+        back_populates="club",
+        cascade="all, delete-orphan",
+        order_by="ClubMember.display_order",
+    )
     activities = relationship(
         "ClubActivity",
         back_populates="club",
@@ -378,6 +404,18 @@ class Club(Base):
         order_by="ClubImage.display_order",
     )
 
+
+class ClubMember(Base):
+    __tablename__ = "club_members"
+    id = Column(Integer, primary_key=True, index=True)
+    club_id = Column(Integer, ForeignKey("clubs.id"), nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    admission_number = Column(String(40), nullable=True)
+    role = Column(String(80), nullable=True)
+    photo_url = Column(String(255), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Integer, nullable=False, default=1)
+    club = relationship("Club", back_populates="members")
 
 class ClubActivity(Base):
     __tablename__ = "club_activities"
@@ -413,10 +451,17 @@ class DepartmentClub(Base):
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
     name = Column(String(160), nullable=False)
     coordinator = Column(String(120), nullable=True)
+    description = Column(Text, nullable=True)
+    category = Column(String(80), nullable=True)
+    coordinator = Column(String(120), nullable=True)
+    faculty_in_charge = Column(String(120), nullable=True)
+    established_on = Column(String(40), nullable=True)
     objectives = Column(Text, nullable=True)
     activities = Column(Text, nullable=True)
+    meeting_info = Column(Text, nullable=True)
     logo_url = Column(String(255), nullable=True)
-    review_status = Column(String(20), nullable=False, default="pending")
+    cover_url = Column(String(255), nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
     rejection_reason = Column(Text, nullable=True)
     academic_year = Column(String(20), nullable=True)
     created_by = Column(String(80), nullable=True)
@@ -435,6 +480,10 @@ class DepartmentClubMember(Base):
     role = Column(String(80), nullable=True)
     year_label = Column(String(40), nullable=True)
     club = relationship("DepartmentClub", back_populates="members")
+    admission_number = Column(String(40), nullable=True)
+    semester = Column(String(40), nullable=True)
+    photo_url = Column(String(255), nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
 
 
 class DepartmentProject(Base):

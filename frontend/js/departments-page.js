@@ -81,6 +81,47 @@ function fact(label, value, icon) {
     return `<article class="dp-fact"><small>${dpIcon(icon)} ${label}</small><strong>${dpText(value)}</strong></article>`;
 }
 
+function dpSrc(url) {
+    const value = String(url || '').trim();
+    if (!value) return '';
+    if (value.charAt(0) === '/' && value.charAt(1) !== '/') return value;
+    try {
+        const parsed = new URL(value, window.location.origin);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+    } catch (err) {
+        return '';
+    }
+    return '';
+}
+
+function departmentClubCard(club) {
+    const name = String(club.name || '').trim();
+    const intro = String(club.intro || club.description || '').trim();
+    const cover = dpSrc(club.cover_url);
+    const logo = dpSrc(club.logo_url);
+    const faculty = String(club.faculty_in_charge || '').trim();
+    const highlight = String(club.activities_text || '').trim().split(/\n+/).map((line) => line.trim()).filter(Boolean)[0] || '';
+    const activities = (club.activities || []).map((item) => String(item.title || '').trim()).filter(Boolean).slice(0, 2);
+    const initial = dpText((name || 'C').charAt(0).toUpperCase());
+    return `
+        <article class="dp-club-card dp-reveal">
+            <div class="dp-club-cover">
+                ${cover ? `<img src="${dpText(cover)}" alt="${dpText(name)} cover" loading="lazy" data-kkm-fill="cover">` : `<span class="dp-club-fallback" aria-hidden="true">${initial}</span>`}
+                ${logo ? `<img class="dp-club-logo" src="${dpText(logo)}" alt="${dpText(name)} logo" loading="lazy" data-kkm-fill="cover">` : ''}
+            </div>
+            <div class="dp-club-body">
+                ${club.category ? `<span class="dp-club-badge">${dpText(club.category)}</span>` : ''}
+                <h3>${dpText(name)}</h3>
+                ${intro ? `<p class="dp-club-intro">${dpText(intro)}</p>` : ''}
+                ${faculty ? `<p class="dp-club-faculty"><span>Faculty coordinator</span>${dpText(faculty)}</p>` : ''}
+                ${!faculty && String(club.coordinator || '').trim() ? `<p class="dp-club-faculty"><span>Coordinator</span>${dpText(club.coordinator)}</p>` : ''}
+                ${highlight ? `<p class="dp-club-highlight">${dpText(highlight)}</p>` : ''}
+                ${activities.length ? `<ul>${activities.map((title) => `<li>${dpText(title)}</li>`).join('')}</ul>` : ''}
+                ${club.slug ? `<a class="dp-club-link" href="clubs.html#${encodeURIComponent(club.slug)}">View Club Details</a>` : ''}
+            </div>
+        </article>`;
+}
+
 function contentCard(item) {
     const title = item.name || item.title || '';
     const image = item.logo_url || item.image_url || item.photo_url || '';
@@ -123,7 +164,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
     if (hod || faculty.length) sections.push(['people', 'Faculty']);
     if (labs.length) sections.push(['labs', 'Laboratories']);
     if (careers.length) sections.push(['careers', 'Career paths']);
-    if ((pack.clubs || []).length) sections.push(['clubs', 'Clubs']);
+    sections.push(['clubs', 'Student Clubs']);
     if (activity.length) sections.push(['events', 'Activities']);
     if ((pack.notices || []).length) sections.push(['notices', 'Notices']);
     if ((pack.projects || []).length) sections.push(['projects', 'Projects']);
@@ -173,7 +214,10 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
             <article class="dp-person dp-reveal">${avatar(person)}<div><strong>${dpText(person.name)}</strong>${person.role || person.designation ? `<div>${dpText(person.role === 'HOD' ? 'Head of Department' : (person.designation || person.role))}</div>` : ''}</div></article>`).join('')}</div></section>` : ''}
         ${labs.length ? `<section class="dp-section" id="dp-labs"><h3>Laboratories and facilities</h3><div class="dp-grid">${labs.map((lab) => `<article class="dp-card dp-reveal"><div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(lab)}</h3></div></article>`).join('')}</div></section>` : ''}
         ${careers.length ? `<section class="dp-section" id="dp-careers"><h3>Career paths</h3><div class="dp-pills">${careers.map((item) => `<span>${dpText(item)}</span>`).join('')}</div></section>` : ''}
-        ${(pack.clubs || []).length ? `<section class="dp-section" id="dp-clubs"><h3>Clubs and associations</h3><div class="dp-grid">${pack.clubs.map(contentCard).join('')}</div></section>` : ''}
+        <section class="dp-section dp-clubs" id="dp-clubs">
+            <h3>Student Clubs</h3>
+            ${(pack.clubs || []).length ? `<div class="dp-club-grid">${pack.clubs.map(departmentClubCard).join('')}</div>` : '<p class="dp-club-empty">No student clubs have been added to this department yet.</p>'}
+        </section>
         ${activity.length ? `<section class="dp-section" id="dp-events"><h3>Activities and events</h3>
             <div class="dp-tabs" role="tablist"><button class="dp-tab" type="button" role="tab" aria-selected="true" data-dp-tab="upcoming">Upcoming</button><button class="dp-tab" type="button" role="tab" aria-selected="false" data-dp-tab="past">Past</button></div>
             <div class="dp-grid" data-dp-panel="upcoming">${upcoming.map(contentCard).join('') || '<p>No upcoming activities.</p>'}</div>
@@ -263,6 +307,19 @@ function openDeptMedia(btn) {
 }
 
 function bindDepartmentPage(root, photos) {
+    root.querySelectorAll('.dp-club-cover img').forEach((img) => {
+        img.addEventListener('error', () => {
+            if (img.classList.contains('dp-club-logo')) {
+                img.remove();
+                return;
+            }
+            const mark = document.createElement('span');
+            mark.className = 'dp-club-fallback';
+            mark.setAttribute('aria-hidden', 'true');
+            mark.textContent = (img.getAttribute('alt') || 'C').trim().charAt(0).toUpperCase() || 'C';
+            img.replaceWith(mark);
+        });
+    });
     root.querySelectorAll('[data-dp-tab]').forEach((tab) => {
         tab.addEventListener('click', () => {
             root.querySelectorAll('[data-dp-tab]').forEach((item) => item.setAttribute('aria-selected', item === tab ? 'true' : 'false'));

@@ -2,9 +2,11 @@
 Staff & HOD management, scoped per department.
 
 Read (GET) is public — departments.html displays staff/HOD without login.
-Write (POST/PATCH/DELETE, including photo upload) is central admin only.
+Write (POST/PATCH/DELETE, including photo upload) is allowed for the central
+admin and for a department user acting only on their own department.
 Photo upload accepts jpg/png/webp, max 4MB. Exactly one HOD per department.
 """
+import re
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -15,6 +17,7 @@ from file_storage import IMAGE_EXT, save_upload, delete_local_file
 import models, schemas, auth
 
 router = APIRouter(prefix="/api/staff", tags=["staff"])
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MAX_PHOTO = 4 * 1024 * 1024
 
 
@@ -22,12 +25,6 @@ def _parse_in_charge(value: Optional[str]) -> Optional[int]:
     if value is None:
         return None
     return 1 if str(value).strip().lower() in ("1", "true", "yes", "on") else 0
-
-
-def _require_staff_admin(actor: dict) -> None:
-    """Department users may read staff. Only the central admin may change it."""
-    if not actor or actor.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Only the central admin can change HOD and faculty.")
 
 
 def _ensure_single_hod(db: Session, department_id: int, keep_id: Optional[int] = None):
@@ -64,7 +61,6 @@ async def create_staff(
     actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
-    _require_staff_admin(actor)
     if role not in ("HOD", "Faculty"):
         raise HTTPException(status_code=400, detail="role must be HOD or Faculty")
     dept = db.query(models.Department).filter(models.Department.id == department_id).first()
@@ -72,8 +68,14 @@ async def create_staff(
         raise HTTPException(status_code=400, detail="Invalid department")
     auth.assert_department_access(actor, department_id)
     name = (name or "").strip()
+    designation = (designation or "").strip()
+    email = (email or "").strip().lower()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
+    if not designation:
+        raise HTTPException(status_code=400, detail="Designation is required")
+    if not EMAIL_RE.match(email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address")
     photo_url = await save_upload(photo, "staff", IMAGE_EXT, MAX_PHOTO)
     in_charge = _parse_in_charge(is_in_charge)
     if in_charge is None:
@@ -88,6 +90,8 @@ async def create_staff(
             if photo_url:
                 delete_local_file(existing.photo_url)
                 existing.photo_url = photo_url
+            existing.designation = designation
+            existing.email = email
             existing.is_in_charge = in_charge
             db.commit()
             db.refresh(existing)
@@ -122,7 +126,6 @@ async def update_staff(
     actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
-    _require_staff_admin(actor)
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")
@@ -132,11 +135,17 @@ async def update_staff(
     if name is not None:
         staff.name = name.strip()
     if designation is not None:
-        staff.designation = designation or None
+        designation = designation.strip()
+        if not designation:
+            raise HTTPException(status_code=400, detail="Designation is required")
+        staff.designation = designation
     if qualification is not None:
         staff.qualification = qualification or None
     if email is not None:
-        staff.email = email or None
+        email = email.strip().lower()
+        if not EMAIL_RE.match(email):
+            raise HTTPException(status_code=400, detail="Enter a valid email address")
+        staff.email = email
     if phone is not None:
         staff.phone = phone or None
     if department_id is not None:
@@ -168,7 +177,6 @@ async def update_staff(
 
 @router.delete("/{staff_id}")
 def delete_staff(staff_id: int, actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
-    _require_staff_admin(actor)
     staff = db.query(models.Staff).filter(models.Staff.id == staff_id).first()
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")

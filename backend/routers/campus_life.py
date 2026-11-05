@@ -1,4 +1,4 @@
-"""Public and admin APIs for the IIC page and the four student clubs."""
+"""Public and admin APIs for the IIC page. Student clubs live in routers/clubs.py."""
 from typing import List, Optional, Union
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session, joinedload
@@ -10,7 +10,6 @@ import auth
 
 router = APIRouter(tags=["campus-life"])
 MAX_IMAGE = 6 * 1024 * 1024
-CLUB_SLUGS = ("music", "sports", "arts", "coding")
 
 
 def _clean(value: Optional[str], limit: int) -> Optional[str]:
@@ -85,37 +84,6 @@ def _page(row) -> dict:
     }
 
 
-def _club(row, published_only: bool) -> dict:
-    activities = row.activities
-    images = row.images
-    if published_only:
-        activities = [item for item in activities if item.is_published]
-        images = [item for item in images if item.is_published]
-    return {
-        "id": row.id,
-        "slug": row.slug,
-        "name": row.name,
-        "intro": row.intro,
-        "description": row.description,
-        "display_order": row.display_order or 0,
-        "is_published": row.is_published or 0,
-        "activities": [
-            {
-                "id": item.id,
-                "club_id": item.club_id,
-                "title": item.title,
-                "description": item.description,
-                "event_date": item.event_date,
-                "venue": item.venue,
-                "display_order": item.display_order or 0,
-                "is_published": item.is_published or 0,
-            }
-            for item in activities
-        ],
-        "images": [_image(item) for item in images],
-    }
-
-
 def _unique_rows(rows):
     unique = []
     seen = set()
@@ -131,20 +99,6 @@ def _iic_row(db: Session) -> models.IICPage:
     row = db.query(models.IICPage).order_by(models.IICPage.id).first()
     if not row:
         raise HTTPException(status_code=404, detail="IIC page has not been set up")
-    return row
-
-
-def _club_row(db: Session, slug: str) -> models.Club:
-    if slug not in CLUB_SLUGS:
-        raise HTTPException(status_code=404, detail="Unknown club")
-    row = (
-        db.query(models.Club)
-        .options(joinedload(models.Club.activities), joinedload(models.Club.images))
-        .filter(models.Club.slug == slug)
-        .first()
-    )
-    if not row:
-        raise HTTPException(status_code=404, detail="Club not found")
     return row
 
 
@@ -418,200 +372,6 @@ def update_iic_gallery(
 @router.delete("/api/admin/iic/gallery/{image_id}")
 def delete_iic_gallery(image_id: int, db: Session = Depends(get_db), _=Depends(auth.require_admin)):
     row = db.query(models.IICGalleryImage).filter(models.IICGalleryImage.id == image_id).first()
-    if not row:
-        raise HTTPException(status_code=404, detail="Photograph not found")
-    url = row.image_url
-    db.delete(row)
-    db.commit()
-    delete_local_file(url)
-    return {"ok": True}
-
-
-@router.get("/api/clubs")
-def public_clubs(db: Session = Depends(get_db)):
-    rows = (
-        db.query(models.Club)
-        .options(joinedload(models.Club.activities), joinedload(models.Club.images))
-        .filter(models.Club.is_published == 1)
-        .order_by(models.Club.display_order, models.Club.id)
-        .all()
-    )
-    return [_club(row, True) for row in _unique_rows(rows)]
-
-
-@router.get("/api/admin/clubs")
-def admin_clubs(db: Session = Depends(get_db), _=Depends(auth.require_admin)):
-    rows = (
-        db.query(models.Club)
-        .options(joinedload(models.Club.activities), joinedload(models.Club.images))
-        .order_by(models.Club.display_order, models.Club.id)
-        .all()
-    )
-    return [_club(row, False) for row in _unique_rows(rows)]
-
-
-@router.patch("/api/admin/clubs/{slug}")
-def update_club(
-    slug: str,
-    name: str = Form(...),
-    intro: str = Form(""),
-    description: str = Form(""),
-    display_order: str = Form("0"),
-    is_published: str = Form("1"),
-    db: Session = Depends(get_db),
-    _=Depends(auth.require_admin),
-):
-    row = _club_row(db, slug)
-    club_name = _clean(name, 120)
-    if not club_name:
-        raise HTTPException(status_code=400, detail="Club name is required")
-    row.name = club_name
-    row.intro = _clean(intro, 2000)
-    row.description = _clean(description, 4000)
-    row.display_order = _order(display_order)
-    row.is_published = _flag(is_published, 1)
-    db.commit()
-    db.refresh(row)
-    return _club(row, False)
-
-
-@router.post("/api/admin/clubs/{slug}/activities")
-def create_club_activity(
-    slug: str,
-    title: str = Form(...),
-    description: str = Form(""),
-    event_date: str = Form(""),
-    venue: str = Form(""),
-    display_order: str = Form("0"),
-    is_published: str = Form("0"),
-    db: Session = Depends(get_db),
-    _=Depends(auth.require_admin),
-):
-    club = _club_row(db, slug)
-    name = _clean(title, 200)
-    if not name:
-        raise HTTPException(status_code=400, detail="Activity title is required")
-    row = models.ClubActivity(
-        club_id=club.id,
-        title=name,
-        description=_clean(description, 4000),
-        event_date=_clean(event_date, 40),
-        venue=_clean(venue, 160),
-        display_order=_order(display_order),
-        is_published=_flag(is_published),
-    )
-    db.add(row)
-    db.commit()
-    db.refresh(row)
-    return {
-        "id": row.id,
-        "club_id": row.club_id,
-        "title": row.title,
-        "description": row.description,
-        "event_date": row.event_date,
-        "venue": row.venue,
-        "display_order": row.display_order,
-        "is_published": row.is_published,
-    }
-
-
-@router.patch("/api/admin/clubs/{slug}/activities/{activity_id}")
-def update_club_activity(
-    slug: str,
-    activity_id: int,
-    title: str = Form(...),
-    description: str = Form(""),
-    event_date: str = Form(""),
-    venue: str = Form(""),
-    display_order: str = Form("0"),
-    is_published: str = Form("0"),
-    db: Session = Depends(get_db),
-    _=Depends(auth.require_admin),
-):
-    club = _club_row(db, slug)
-    row = db.query(models.ClubActivity).filter(models.ClubActivity.id == activity_id, models.ClubActivity.club_id == club.id).first()
-    if not row:
-        raise HTTPException(status_code=404, detail="Activity not found")
-    name = _clean(title, 200)
-    if not name:
-        raise HTTPException(status_code=400, detail="Activity title is required")
-    row.title = name
-    row.description = _clean(description, 4000)
-    row.event_date = _clean(event_date, 40)
-    row.venue = _clean(venue, 160)
-    row.display_order = _order(display_order)
-    row.is_published = _flag(is_published)
-    db.commit()
-    return {"ok": True}
-
-
-@router.delete("/api/admin/clubs/{slug}/activities/{activity_id}")
-def delete_club_activity(slug: str, activity_id: int, db: Session = Depends(get_db), _=Depends(auth.require_admin)):
-    club = _club_row(db, slug)
-    row = db.query(models.ClubActivity).filter(models.ClubActivity.id == activity_id, models.ClubActivity.club_id == club.id).first()
-    if not row:
-        raise HTTPException(status_code=404, detail="Activity not found")
-    db.delete(row)
-    db.commit()
-    return {"ok": True}
-
-
-@router.post("/api/admin/clubs/{slug}/gallery")
-async def create_club_gallery(
-    slug: str,
-    caption: str = Form(""),
-    alt_text: str = Form(""),
-    display_order: str = Form("0"),
-    is_published: str = Form("1"),
-    image: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    _=Depends(auth.require_admin),
-):
-    club = _club_row(db, slug)
-    urls = await _store_images(image, f"clubs/{slug}")
-    if not urls:
-        raise HTTPException(status_code=400, detail="Choose at least one photograph")
-    start = _order(display_order)
-    for offset, url in enumerate(urls):
-        db.add(models.ClubImage(
-            club_id=club.id,
-            image_url=url,
-            caption=_clean(caption, 200),
-            alt_text=_clean(alt_text, 200),
-            display_order=start + offset,
-            is_published=_flag(is_published, 1),
-        ))
-    db.commit()
-    return {"ok": True, "count": len(urls)}
-
-
-@router.patch("/api/admin/clubs/{slug}/gallery/{image_id}")
-def update_club_gallery(
-    slug: str,
-    image_id: int,
-    caption: str = Form(""),
-    alt_text: str = Form(""),
-    display_order: str = Form("0"),
-    is_published: str = Form("1"),
-    db: Session = Depends(get_db),
-    _=Depends(auth.require_admin),
-):
-    club = _club_row(db, slug)
-    row = db.query(models.ClubImage).filter(models.ClubImage.id == image_id, models.ClubImage.club_id == club.id).first()
-    if not row:
-        raise HTTPException(status_code=404, detail="Photograph not found")
-    row.caption = _clean(caption, 200)
-    row.alt_text = _clean(alt_text, 200)
-    row.display_order = _order(display_order)
-    row.is_published = _flag(is_published, 1)
-    db.commit()
-    return _image(row)
-
-
-@router.delete("/api/admin/clubs/{slug}/gallery/{image_id}")
-def delete_club_gallery(slug: str, image_id: int, db: Session = Depends(get_db), _=Depends(auth.require_admin)):
-    club = _club_row(db, slug)
-    row = db.query(models.ClubImage).filter(models.ClubImage.id == image_id, models.ClubImage.club_id == club.id).first()
     if not row:
         raise HTTPException(status_code=404, detail="Photograph not found")
     url = row.image_url

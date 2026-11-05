@@ -11,12 +11,19 @@ const DM_MODULES = {
         title: 'Clubs and associations',
         fields: [
             ['name', 'Club name', 'text', true],
+            ['description', 'Short description', 'textarea'],
+            ['category', 'Category', 'text'],
             ['coordinator', 'Coordinator', 'text'],
+            ['faculty_in_charge', 'Faculty in charge', 'text'],
+            ['established_on', 'Established', 'text'],
             ['objectives', 'Objectives', 'textarea'],
             ['activities', 'Activities', 'textarea'],
+            ['meeting_info', 'Meetings', 'textarea'],
             ['academic_year', 'Academic year', 'text'],
-            ['members', 'Student members', 'members'],
-            ['logo', 'Logo or photo', 'file', false, 'image/jpeg,image/png,image/webp'],
+            ['is_active', 'Status', 'select', false, ['1', '0']],
+            ['members', 'Members', 'members'],
+            ['logo', 'Logo', 'file', false, 'image/jpeg,image/png,image/webp'],
+            ['cover', 'Cover photo', 'file', false, 'image/jpeg,image/png,image/webp'],
         ],
     },
     events: {
@@ -27,6 +34,7 @@ const DM_MODULES = {
             ['event_date', 'Date', 'date'],
             ['start_time', 'Time', 'time'],
             ['venue', 'Venue', 'text'],
+            ['club_id', 'Club', 'club'],
             ['description', 'Description', 'textarea'],
             ['academic_year', 'Academic year', 'text'],
             ['participant_count', 'Participant count', 'number'],
@@ -164,6 +172,8 @@ async function startDepartmentApp(payload) {
         pick.onchange = () => {
             dm.code = pick.value;
             dm.name = (dm.departments.find((dept) => dept.code === dm.code) || {}).name || '';
+            dm.clubId = null;
+            dm.clubNew = false;
             document.getElementById('deptTitle').textContent = dm.name;
             showPanel(dm.panel);
         };
@@ -193,6 +203,7 @@ function renderPanel() {
     if (dm.panel === 'faculty') return renderFaculty(main);
     if (dm.panel === 'accounts') return renderAccounts(main);
     if (dm.panel === 'approvals') return renderApprovals(main);
+    if (dm.panel === 'clubs') return renderOwnClubs(main);
     return renderModule(main, dm.panel);
 }
 
@@ -254,16 +265,13 @@ async function renderFaculty(main) {
     main.innerHTML = '<div class="dm-skel"></div>';
     const people = await dmFetch(`/api/staff?department=${encodeURIComponent(dm.code)}`);
     const dept = dm.departments.find((item) => item.code === dm.code) || await dmFetch(`/api/departments/${encodeURIComponent(dm.code)}`);
-    const canEdit = dm.role === 'admin';
     const cards = people.map((person) => {
         const photo = person.photo_url ? `<img src="${escapeHTML(person.photo_url)}" alt="" style="width:3rem;height:3rem;border-radius:50%;object-fit:cover">` : '';
-        const actions = canEdit ? `<div class="dm-actions"><button class="dm-soft" data-edit="${person.id}" type="button">Edit</button><button class="dm-danger" data-del="${person.id}" type="button">Delete</button></div>` : '';
-        return `<article class="dm-card">${photo}<h3>${escapeHTML(person.name)}</h3><p>${escapeHTML(person.role || '')}</p>${actions}</article>`;
+        const actions = `<div class="dm-actions"><button class="dm-soft" data-edit="${person.id}" type="button">Edit</button><button class="dm-danger" data-del="${person.id}" type="button">Delete</button></div>`;
+        const meta = [person.role, person.designation, person.email].filter(Boolean).join(' · ');
+        return `<article class="dm-card">${photo}<h3>${escapeHTML(person.name)}</h3><p>${escapeHTML(meta)}</p>${actions}</article>`;
     }).join('') || '<p class="dm-empty">No faculty yet.</p>';
-    const add = canEdit ? '<button class="dm-primary" id="dmAddFaculty" type="button">Add new</button>' : '';
-    const note = canEdit ? '' : '<p>HOD and faculty details are managed by the administrator.</p>';
-    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>HOD and faculty</h2>${add}</div>${note}<div class="dm-list">${cards}</div></section>`;
-    if (!canEdit) return;
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>HOD and faculty</h2><button class="dm-primary" id="dmAddFaculty" type="button">Add new</button></div><div class="dm-list">${cards}</div></section>`;
     const open = (person) => openFacultyForm(dept.id, person);
     document.getElementById('dmAddFaculty').onclick = () => open(null);
     main.querySelectorAll('[data-edit]').forEach((button) => { button.onclick = () => open(people.find((person) => String(person.id) === button.getAttribute('data-edit'))); });
@@ -280,14 +288,13 @@ async function renderFaculty(main) {
 }
 
 function openFacultyForm(departmentId, person) {
-    if (dm.role !== 'admin') return;
     const dialog = document.getElementById('dmSheet');
     dialog.innerHTML = `<form><h2>${person ? 'Edit faculty' : 'Add faculty'}</h2>
         <label>Name<input name="name" required value="${escapeHTML(person && person.name || '')}"></label>
         <label>Role<select name="role"><option>Faculty</option><option ${person && person.role === 'HOD' ? 'selected' : ''}>HOD</option></select></label>
-        <label>Designation<input name="designation" value="${escapeHTML(person && person.designation || '')}"></label>
+        <label>Designation<input name="designation" required value="${escapeHTML(person && person.designation || '')}"></label>
         <label>Qualification<input name="qualification" value="${escapeHTML(person && person.qualification || '')}"></label>
-        <label>Email<input name="email" type="email" value="${escapeHTML(person && person.email || '')}"></label>
+        <label>Email<input name="email" type="email" required value="${escapeHTML(person && person.email || '')}"></label>
         <label>Phone<input name="phone" value="${escapeHTML(person && person.phone || '')}"></label>
         <label>In charge<input name="is_in_charge" type="checkbox" ${person && person.is_in_charge ? 'checked' : ''}></label>
         <label>Photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
@@ -323,6 +330,109 @@ function moduleQuery() {
     params.set('limit', '8');
     params.set('offset', String(dm.offset));
     return params.toString();
+}
+
+async function renderOwnClubs(main) {
+    main.innerHTML = '<div class="dm-skel"></div>';
+    let clubs = [];
+    try { clubs = await dmFetch(`/api/department-clubs?code=${encodeURIComponent(dm.code)}`); }
+    catch (err) { main.innerHTML = `<p>${escapeHTML(err.message)}</p>`; return; }
+    const selected = clubs.find((club) => club.id === dm.clubId);
+    if (!selected && !dm.clubNew) {
+        main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>Student clubs</h2><button class="dm-primary" id="dmAddClub" type="button">Add club</button></div><p>These clubs belong to ${escapeHTML(dm.name || dm.code)} and also appear on the public clubs page when published.</p><div class="dm-list">${clubs.map((club) => `<article class="dm-card"><span class="dm-status dm-${club.status === 'published' ? 'approved' : 'pending'}">${escapeHTML(club.status || 'draft')}</span><h3>${escapeHTML(club.name)}</h3><p>${escapeHTML(club.category || '')}</p><div class="dm-actions"><button class="dm-soft" data-edit="${club.id}" type="button">Edit</button>${club.status === 'published' ? `<a class="dm-soft" href="clubs.html#${escapeHTML(club.slug)}" target="_blank" rel="noopener">Preview</a>` : ''}<button class="dm-danger" data-del="${club.id}" type="button">Delete</button></div></article>`).join('') || '<p class="dm-empty">No student clubs have been added to this department yet.</p>'}</div></section>`;
+        document.getElementById('dmAddClub').onclick = () => { dm.clubNew = true; dm.clubId = null; renderOwnClubs(main); };
+        main.querySelectorAll('[data-edit]').forEach((button) => { button.onclick = () => { dm.clubId = Number(button.getAttribute('data-edit')); dm.clubNew = false; renderOwnClubs(main); }; });
+        main.querySelectorAll('[data-del]').forEach((button) => { button.onclick = () => deleteOwnClub(button.getAttribute('data-del'), main); });
+        return;
+    }
+    const club = selected || {};
+    const categories = ['Technical', 'Cultural', 'Sports', 'Arts', 'Music', 'Social', 'Other'];
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>${selected ? 'Edit club' : 'Add club'}</h2><button class="dm-soft" id="dmClubBack" type="button">Back</button></div>
+        <form id="dmClubForm" class="dm-form">
+            <label>Club name<input name="name" required value="${escapeHTML(club.name || '')}"></label>
+            <label>Category<select name="category">${categories.map((item) => `<option ${item === club.category ? 'selected' : ''}>${item}</option>`).join('')}</select></label>
+            <label>Status<select name="status"><option value="published" ${club.status === 'published' ? 'selected' : ''}>Published</option><option value="draft" ${!club.status || club.status === 'draft' ? 'selected' : ''}>Draft</option><option value="inactive" ${club.status === 'inactive' ? 'selected' : ''}>Inactive</option></select></label>
+            <label>Display order<input name="display_order" type="number" value="${club.display_order || 0}"></label>
+            <label>Short introduction<textarea name="intro">${escapeHTML(club.intro || '')}</textarea></label>
+            <label>Full description<textarea name="description">${escapeHTML(club.description || '')}</textarea></label>
+            <label>Objectives<textarea name="objectives">${escapeHTML(club.objectives || '')}</textarea></label>
+            <label>Activities and programs<textarea name="activities_text">${escapeHTML(club.activities_text || '')}</textarea></label>
+            <label>Meeting schedule<textarea name="meeting_info">${escapeHTML(club.meeting_info || '')}</textarea></label>
+            <label>Established<input name="established_on" value="${escapeHTML(club.established_on || '')}"></label>
+            <label>Coordinator<input name="coordinator" value="${escapeHTML(club.coordinator || '')}"></label>
+            <label>Faculty in charge<input name="faculty_in_charge" value="${escapeHTML(club.faculty_in_charge || '')}"></label>
+            <label>Contact (private)<input name="contact_info" value="${escapeHTML(club.contact_info || '')}"></label>
+            <label>Logo<input name="logo" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <label>Cover photograph<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <button class="dm-primary" type="submit">Save</button>
+        </form>
+        ${selected ? `<form id="dmMemberForm"><h3>Members</h3><label>Name<input name="name" required></label><label>Role<input name="role" value="Member"></label><label>Admission number (private)<input name="admission_number"></label><label>Photograph<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="dm-primary" type="submit">Add member</button></form>
+        <div class="dm-list">${(club.members || []).map((member) => `<article class="dm-card"><h3>${escapeHTML(member.name)}</h3><p>${escapeHTML(member.role || '')}</p><button class="dm-danger" data-member="${member.id}" type="button">Remove</button></article>`).join('') || '<p class="dm-empty">No members yet.</p>'}</div>
+        <form id="dmActivityForm"><h3>Activities</h3><p>These are club activities, not official college events.</p><label>Title<input name="title" required></label><label>Date<input name="event_date" type="date"></label><label>Venue<input name="venue"></label><label>Description<textarea name="description"></textarea></label><label>Status<select name="is_published"><option value="0">Draft</option><option value="1">Published</option></select></label><button class="dm-primary" type="submit">Add activity</button></form>
+        <div class="dm-list">${(club.activities || []).map((item) => `<article class="dm-card"><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.status || '')}</p><button class="dm-danger" data-activity="${item.id}" type="button">Delete</button></article>`).join('') || '<p class="dm-empty">No activities yet.</p>'}</div>
+        <form id="dmGalleryForm"><h3>Gallery</h3><label>Caption<input name="caption"></label><label>Alternative text<input name="alt_text"></label><label>Status<select name="is_published"><option value="0">Draft</option><option value="1">Published</option></select></label><label>Photograph<input name="image" type="file" accept="image/jpeg,image/png,image/webp" required></label><button class="dm-primary" type="submit">Upload</button></form>
+        <div class="dm-list">${(club.images || []).map((item) => `<article class="dm-card">${item.image_url ? `<img src="${escapeHTML(item.image_url)}" alt="${escapeHTML(item.alt_text || '')}">` : ''}<p>${escapeHTML(item.caption || 'Photograph')}</p><button class="dm-danger" data-image="${item.id}" type="button">Delete</button></article>`).join('') || '<p class="dm-empty">No photographs yet.</p>'}</div>` : ''}</section>`;
+    document.getElementById('dmClubBack').onclick = () => { dm.clubId = null; dm.clubNew = false; renderOwnClubs(main); };
+    document.getElementById('dmClubForm').onsubmit = async (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        data.set('code', dm.code);
+        if (!data.get('logo') || !data.get('logo').name) data.delete('logo');
+        if (!data.get('cover') || !data.get('cover').name) data.delete('cover');
+        try {
+            const saved = await dmFetch(selected ? `/api/department-clubs/${selected.id}` : '/api/department-clubs', { method: selected ? 'PATCH' : 'POST', body: data });
+            dm.clubId = saved.id;
+            dm.clubNew = false;
+            dmToast('Club saved.');
+            renderOwnClubs(main);
+        } catch (err) { dmToast(err.message); }
+    };
+    const memberForm = document.getElementById('dmMemberForm');
+    if (!memberForm) return;
+    memberForm.onsubmit = async (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        data.set('code', dm.code);
+        if (!data.get('photo') || !data.get('photo').name) data.delete('photo');
+        try { await dmFetch(`/api/department-clubs/${selected.id}/members`, { method: 'POST', body: data }); dmToast('Member added.'); renderOwnClubs(main); }
+        catch (err) { dmToast(err.message); }
+    };
+    document.getElementById('dmActivityForm').onsubmit = async (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        data.set('code', dm.code);
+        try { await dmFetch(`/api/department-clubs/${selected.id}/activities`, { method: 'POST', body: data }); dmToast('Activity added.'); renderOwnClubs(main); }
+        catch (err) { dmToast(err.message); }
+    };
+    document.getElementById('dmGalleryForm').onsubmit = async (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        data.set('code', dm.code);
+        try { await dmFetch(`/api/department-clubs/${selected.id}/gallery`, { method: 'POST', body: data }); dmToast('Photograph added.'); renderOwnClubs(main); }
+        catch (err) { dmToast(err.message); }
+    };
+    main.querySelectorAll('[data-member]').forEach((button) => { button.onclick = () => removeOwnPiece(selected.id, 'members', button.getAttribute('data-member'), main); });
+    main.querySelectorAll('[data-activity]').forEach((button) => { button.onclick = () => removeOwnPiece(selected.id, 'activities', button.getAttribute('data-activity'), main); });
+    main.querySelectorAll('[data-image]').forEach((button) => { button.onclick = () => removeOwnPiece(selected.id, 'gallery', button.getAttribute('data-image'), main); });
+}
+
+async function deleteOwnClub(id, main) {
+    if (!await dmAsk('Delete this club? Its activities, members, and photographs will be removed.')) return;
+    try {
+        await dmFetch(`/api/department-clubs/${id}?code=${encodeURIComponent(dm.code)}`, { method: 'DELETE' });
+        dm.clubId = null;
+        dmToast('Club deleted.');
+        renderOwnClubs(main);
+    } catch (err) { dmToast(err.message); }
+}
+
+async function removeOwnPiece(clubId, kind, id, main) {
+    if (!await dmAsk('Remove this item?')) return;
+    try {
+        await dmFetch(`/api/department-clubs/${clubId}/${kind}/${id}?code=${encodeURIComponent(dm.code)}`, { method: 'DELETE' });
+        dmToast('Removed.');
+        renderOwnClubs(main);
+    } catch (err) { dmToast(err.message); }
 }
 
 async function renderModule(main, kind) {
@@ -365,7 +475,15 @@ function fieldHTML(field, item) {
     const [name, label, type, required, extra, multiple] = field;
     const value = item && item[name] != null ? item[name] : '';
     if (type === 'textarea') return `<label>${label}<textarea name="${name}">${escapeHTML(String(value || ''))}</textarea></label>`;
-    if (type === 'select') return `<label>${label}<select name="${name}">${extra.map((option) => `<option ${option === value ? 'selected' : ''}>${escapeHTML(option)}</option>`).join('')}</select></label>`;
+    if (type === 'select') {
+        const optionLabel = (option) => option === '1' ? 'Active' : option === '0' ? 'Inactive' : option;
+        const current = value === '' || value == null ? '1' : String(value);
+        return `<label>${label}<select name="${name}">${extra.map((option) => `<option value="${escapeHTML(option)}" ${option === current ? 'selected' : ''}>${escapeHTML(optionLabel(option))}</option>`).join('')}</select></label>`;
+    }
+    if (type === 'club') {
+        const clubs = window.__dmClubs || [];
+        return `<label>${label}<select name="${name}"><option value="">None</option>${clubs.map((club) => `<option value="${club.id}" ${String(club.id) === String(value) ? 'selected' : ''}>${escapeHTML(club.name)}</option>`).join('')}</select></label>`;
+    }
     if (type === 'file') return `<label>${label}<input name="${name}" type="file" accept="${extra || ''}" ${multiple ? 'multiple' : ''}></label>`;
     if (type === 'members') {
         const members = item && item.members && item.members.length ? item.members : [{ name: '', role: '', year_label: '' }];
@@ -375,10 +493,18 @@ function fieldHTML(field, item) {
 }
 
 function memberRow(member) {
-    return `<div class="dm-member"><input name="member_name" placeholder="Name" value="${escapeHTML(member.name || '')}"><input name="member_role" placeholder="Role" value="${escapeHTML(member.role || '')}"><input name="member_year" placeholder="Year" value="${escapeHTML(member.year_label || '')}"></div>`;
+    return `<div class="dm-member"><input name="member_name" placeholder="Name" value="${escapeHTML(member.name || '')}"><input name="member_role" placeholder="Role" value="${escapeHTML(member.role || '')}"><input name="member_year" placeholder="Year" value="${escapeHTML(member.year_label || '')}"><input name="member_semester" placeholder="Semester" value="${escapeHTML(member.semester || '')}"><input name="member_admission" placeholder="Admission number (private)" value="${escapeHTML(member.admission_number || '')}"></div>`;
 }
 
-function openModuleForm(kind, item) {
+async function openModuleForm(kind, item) {
+    if (kind === 'events') {
+        try {
+            const page = await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/clubs?limit=100`);
+            window.__dmClubs = page.items || [];
+        } catch (err) {
+            window.__dmClubs = [];
+        }
+    }
     const dialog = document.getElementById('dmSheet');
     const mod = DM_MODULES[kind];
     dialog.innerHTML = `<form><h2>${item ? 'Edit' : 'Add'} ${escapeHTML(mod.title)}</h2>${mod.fields.map((field) => fieldHTML(field, item)).join('')}<div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Save</button></div></form>`;
@@ -396,6 +522,8 @@ function openModuleForm(kind, item) {
                     name: row.querySelector('[name="member_name"]').value.trim(),
                     role: row.querySelector('[name="member_role"]').value.trim(),
                     year_label: row.querySelector('[name="member_year"]').value.trim(),
+                    semester: row.querySelector('[name="member_semester"]').value.trim(),
+                    admission_number: row.querySelector('[name="member_admission"]').value.trim(),
                 })).filter((member) => member.name);
                 data.set('members', JSON.stringify(rows));
             } else if (type === 'file') {
@@ -406,7 +534,7 @@ function openModuleForm(kind, item) {
         try {
             await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/${kind}${item ? '/' + item.id : ''}`, { method: item ? 'PATCH' : 'POST', body: data });
             dialog.close();
-            dmToast(dm.role === 'admin' ? 'Saved and published.' : 'Saved and sent for approval.');
+            dmToast(dm.role === 'admin' || kind === 'clubs' ? 'Saved and published.' : 'Saved and sent for approval.');
             dm.offset = 0;
             renderModule(document.getElementById('dmMain'), kind);
         } catch (err) { dmToast(err.message); }
@@ -439,9 +567,20 @@ async function renderAccounts(main) {
         dmFetch('/api/admin/department-users'),
         dmFetch('/api/departments'),
     ]);
-    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>Login accounts</h2><button class="dm-primary" id="dmAddUser" type="button">Add new</button></div><div class="dm-list">${users.map((user) => `<article class="dm-card"><span class="dm-status ${user.is_active ? 'dm-approved' : 'dm-rejected'}">${user.is_active ? 'Active' : 'Inactive'}</span><h3>${escapeHTML(user.username)}</h3><p>${escapeHTML(user.department_code)} · ${escapeHTML(user.department_name)}</p><div class="dm-actions"><button class="dm-soft" data-user="${user.id}" type="button">Username</button><button class="dm-soft" data-pass="${user.id}" type="button">Reset password</button><button class="dm-danger" data-state="${user.id}" data-active="${user.is_active ? 0 : 1}" type="button">${user.is_active ? 'Deactivate' : 'Activate'}</button></div></article>`).join('') || '<p class="dm-empty">No department logins yet.</p>'}</div></section>`;
-    document.getElementById('dmAddUser').onclick = () => accountForm(depts);
-    main.querySelectorAll('[data-user]').forEach((button) => { button.onclick = () => renameAccount(button.getAttribute('data-user')); });
+    const counts = {};
+    users.forEach((user) => { counts[user.department_id] = (counts[user.department_id] || 0) + 1; });
+    const groups = depts.map((dept) => {
+        const count = counts[dept.id] || 0;
+        const people = users.filter((user) => user.department_id === dept.id);
+        const cards = people.map((user) => `<article class="dm-card"><span class="dm-status ${user.is_active ? 'dm-approved' : 'dm-rejected'}">${user.is_active ? 'Active' : 'Inactive'}</span><h3>${escapeHTML(user.name || user.username)}</h3><p>${escapeHTML([user.designation, user.email, user.username].filter(Boolean).join(' · '))}</p><div class="dm-actions"><button class="dm-soft" data-user="${user.id}" type="button">Edit</button><button class="dm-soft" data-pass="${user.id}" type="button">Reset password</button><button class="dm-danger" data-state="${user.id}" data-active="${user.is_active ? 0 : 1}" type="button">${user.is_active ? 'Deactivate' : 'Activate'}</button><button class="dm-danger" data-remove="${user.id}" type="button">Remove</button></div></article>`).join('') || '<p class="dm-empty">No login yet.</p>';
+        const add = count >= 3
+            ? '<button class="dm-soft" type="button" disabled>Department users: 3 / 3</button>'
+            : `<button class="dm-primary" type="button" data-add="${dept.id}">Add department user</button>`;
+        return `<section class="dm-panel"><div class="dm-head"><h2>${escapeHTML(dept.name)}</h2>${add}</div><p>Department users: ${count} / 3. Inactive accounts still count toward the limit.</p><div class="dm-list">${cards}</div></section>`;
+    }).join('');
+    main.innerHTML = groups;
+    main.querySelectorAll('[data-add]').forEach((button) => { button.onclick = () => accountForm(depts, Number(button.getAttribute('data-add'))); });
+    main.querySelectorAll('[data-user]').forEach((button) => { button.onclick = () => editAccount(users.find((user) => String(user.id) === button.getAttribute('data-user'))); });
     main.querySelectorAll('[data-pass]').forEach((button) => { button.onclick = () => resetAccount(button.getAttribute('data-pass')); });
     main.querySelectorAll('[data-state]').forEach((button) => {
         button.onclick = async () => {
@@ -454,17 +593,28 @@ async function renderAccounts(main) {
             } catch (err) { dmToast(err.message); }
         };
     });
+    main.querySelectorAll('[data-remove]').forEach((button) => {
+        button.onclick = async () => {
+            if (!await dmAsk('Remove this department login? The department itself stays.')) return;
+            try {
+                await dmFetch(`/api/admin/department-users/${button.getAttribute('data-remove')}`, { method: 'DELETE' });
+                dmToast('Login removed.');
+                renderAccounts(main);
+            } catch (err) { dmToast(err.message); }
+        };
+    });
 }
 
-function accountForm(depts) {
+function accountForm(depts, departmentId) {
     const dialog = document.getElementById('dmSheet');
-    dialog.innerHTML = `<form><h2>New login</h2><label>Department<select name="department_id">${depts.map((dept) => `<option value="${dept.id}">${escapeHTML(dept.code)} · ${escapeHTML(dept.name)}</option>`).join('')}</select></label><label>Username<input name="username" required></label><label>Password<input name="password" type="password" required></label><label>Confirm password<input name="confirm_password" type="password" required></label><p>Use 8 or more characters with upper and lower case, a number, and a symbol.</p><div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Create</button></div></form>`;
+    dialog.innerHTML = `<form><h2>New department user</h2><label>Department<select name="department_id">${depts.map((dept) => `<option value="${dept.id}" ${dept.id === departmentId ? 'selected' : ''}>${escapeHTML(dept.code)} · ${escapeHTML(dept.name)}</option>`).join('')}</select></label><label>Name<input name="name" required></label><label>Designation<input name="designation" required placeholder="Head of Department, Lecturer, Faculty in-charge"></label><label>Email<input name="email" type="email" required></label><label>Username (optional)<input name="username" maxlength="32"></label><label>Password<input name="password" type="password" required></label><label>Confirm password<input name="confirm_password" type="password" required></label><p>Use 8 or more characters with upper and lower case, a number, and a symbol. The person can sign in with the username or the email.</p><div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Create</button></div></form>`;
     dialog.showModal();
     dialog.querySelector('#dmClose').onclick = () => dialog.close();
     dialog.querySelector('form').onsubmit = async (event) => {
         event.preventDefault();
         const body = Object.fromEntries(new FormData(event.target).entries());
         body.department_id = Number(body.department_id);
+        if (!String(body.username || '').trim()) delete body.username;
         try {
             await dmFetch('/api/admin/department-users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             dialog.close();
@@ -474,17 +624,19 @@ function accountForm(depts) {
     };
 }
 
-async function renameAccount(id) {
+function editAccount(user) {
+    if (!user) return;
     const dialog = document.getElementById('dmSheet');
-    dialog.innerHTML = `<form><h2>Change username</h2><label>Username<input name="username" required></label><div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Save</button></div></form>`;
+    dialog.innerHTML = `<form><h2>Edit department user</h2><label>Name<input name="name" required value="${escapeHTML(user.name || '')}"></label><label>Designation<input name="designation" required value="${escapeHTML(user.designation || '')}"></label><label>Email<input name="email" type="email" required value="${escapeHTML(user.email || '')}"></label><label>Username<input name="username" required maxlength="32" value="${escapeHTML(user.username || '')}"></label><div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Save</button></div></form>`;
     dialog.showModal();
     dialog.querySelector('#dmClose').onclick = () => dialog.close();
     dialog.querySelector('form').onsubmit = async (event) => {
         event.preventDefault();
+        const body = Object.fromEntries(new FormData(event.target).entries());
         try {
-            await dmFetch(`/api/admin/department-users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: new FormData(event.target).get('username') }) });
+            await dmFetch(`/api/admin/department-users/${user.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             dialog.close();
-            dmToast('Username updated.');
+            dmToast('Account updated.');
             renderAccounts(document.getElementById('dmMain'));
         } catch (err) { dmToast(err.message); }
     };

@@ -523,7 +523,7 @@ class ScrollingNotificationOut(ScrollingNotificationPublic):
 
 
 class DepartmentLoginRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=32)
+    username: str = Field(..., min_length=1, max_length=160)
     password: str = Field(..., min_length=1, max_length=128)
 
     @field_validator("username", mode="before")
@@ -535,6 +535,9 @@ class DepartmentLoginRequest(BaseModel):
 class DepartmentMe(BaseModel):
     id: int
     username: str
+    name: Optional[str] = None
+    designation: Optional[str] = None
+    email: Optional[str] = None
     department_id: int
     department_name: str
     department_code: str
@@ -543,6 +546,9 @@ class DepartmentMe(BaseModel):
 class DepartmentUserOut(BaseModel):
     id: int
     username: str
+    name: Optional[str] = None
+    designation: Optional[str] = None
+    email: Optional[str] = None
     department_id: int
     department_name: str
     department_code: str
@@ -553,18 +559,24 @@ class DepartmentUserOut(BaseModel):
 
 class DepartmentUserCreate(BaseModel):
     department_id: int
-    username: str = Field(..., min_length=1, max_length=32)
+    name: str = Field(..., min_length=1, max_length=120)
+    designation: str = Field(..., min_length=1, max_length=120)
+    email: str = Field(..., min_length=3, max_length=160)
+    username: Optional[str] = Field(None, max_length=32)
     password: str = Field(..., min_length=8, max_length=128)
     confirm_password: str = Field(..., min_length=8, max_length=128)
 
-    @field_validator("username", "password", "confirm_password", mode="before")
+    @field_validator("name", "designation", "email", "username", "password", "confirm_password", mode="before")
     @classmethod
     def strip_create(cls, v):
         return v.strip() if isinstance(v, str) else v
 
 
 class DepartmentUsernameUpdate(BaseModel):
-    username: str = Field(..., min_length=1, max_length=32)
+    username: Optional[str] = Field(None, max_length=32)
+    name: Optional[str] = Field(None, max_length=120)
+    designation: Optional[str] = Field(None, max_length=120)
+    email: Optional[str] = Field(None, max_length=160)
 
     @field_validator("username", mode="before")
     @classmethod

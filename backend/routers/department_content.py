@@ -11,7 +11,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 import auth
 import models
@@ -38,6 +38,9 @@ class MemberIn(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     role: Optional[str] = None
     year_label: Optional[str] = None
+    admission_number: Optional[str] = None
+    semester: Optional[str] = None
+    is_active: Optional[int] = 1
 
 
 class RejectIn(BaseModel):
@@ -113,10 +116,19 @@ async def _images(uploads: Optional[List[UploadFile]], folder: str) -> list:
     return saved
 
 
+def _publishes_directly(row, actor: dict) -> bool:
+    """Department clubs publish immediately for the department that owns them.
+
+    Events, notices, projects, reports, and gallery photos still wait for the
+    central administrator.
+    """
+    return actor.get("role") == "admin" or isinstance(row, models.DepartmentClub)
+
+
 def _stamp_new(row, actor: dict) -> None:
     row.created_by = actor.get("name")
     row.created_at = datetime.utcnow()
-    if actor.get("role") == "admin":
+    if _publishes_directly(row, actor):
         row.review_status = "approved"
         row.approved_by = actor.get("name")
     else:
@@ -126,7 +138,7 @@ def _stamp_new(row, actor: dict) -> None:
 
 def _stamp_edit(row, actor: dict) -> None:
     row.updated_at = datetime.utcnow()
-    if actor.get("role") == "admin":
+    if _publishes_directly(row, actor):
         row.review_status = "approved"
         row.approved_by = actor.get("name")
         row.rejection_reason = None
@@ -148,21 +160,59 @@ def _visible(row) -> bool:
     return status in (None, "approved")
 
 
+def _department_club_id(db: Session, dept: models.Department, raw: Optional[str]):
+    text = (raw or "").strip()
+    if not text:
+        return None
+    try:
+        club_id = int(text)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Choose a club from this department")
+    club = db.query(models.DepartmentClub).filter(
+        models.DepartmentClub.id == club_id,
+        models.DepartmentClub.department_id == dept.id,
+    ).first()
+    if not club:
+        raise HTTPException(status_code=400, detail="Choose a club from this department")
+    return club.id
+
+
+def _public_club(row: models.DepartmentClub) -> dict:
+    data = _club_out(row)
+    for member in data.get("members") or []:
+        member.pop("admission_number", None)
+    return data
+
+
 def _club_out(row: models.DepartmentClub) -> dict:
     return {
         "id": row.id,
         "kind": "clubs",
         "department_id": row.department_id,
         "name": row.name,
+        "description": row.description,
+        "category": row.category,
         "coordinator": row.coordinator,
+        "faculty_in_charge": row.faculty_in_charge,
+        "established_on": row.established_on,
         "objectives": row.objectives,
         "activities": row.activities,
+        "meeting_info": row.meeting_info,
         "logo_url": row.logo_url,
+        "cover_url": row.cover_url,
+        "is_active": int(row.is_active if row.is_active is not None else 1),
         "members": [
-            {"name": m.name, "role": m.role, "year_label": m.year_label}
+            {
+                "name": m.name,
+                "role": m.role,
+                "year_label": m.year_label,
+                "semester": m.semester,
+                "admission_number": m.admission_number,
+                "is_active": int(m.is_active if m.is_active is not None else 1),
+            }
             for m in row.members
         ],
-        "review_status": row.review_status,
+        "review_status": getattr(row, "review_status", None),
         "rejection_reason": row.rejection_reason,
         "academic_year": row.academic_year,
         "created_at": row.created_at.isoformat() if row.created_at else None,
@@ -189,6 +239,7 @@ def _event_out(row: models.Event) -> dict:
         "review_status": row.review_status,
         "rejection_reason": row.rejection_reason,
         "academic_year": row.academic_year,
+        "club_id": row.club_id,
         "created_at": row.created_at.isoformat() if row.created_at else None,
     }
 
@@ -296,8 +347,6 @@ def _owned(db: Session, model, item_id: int, dept: models.Department):
 def list_approvals(actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
     _admin_only(actor)
     items = []
-    for row in db.query(models.DepartmentClub).filter(models.DepartmentClub.review_status == "pending").all():
-        items.append(_club_out(row))
     for row in db.query(models.Event).filter(models.Event.review_status == "pending").all():
         items.append(_event_out(row))
     for row in db.query(models.Notice).filter(models.Notice.review_status == "pending").all():
@@ -361,6 +410,49 @@ def reject_item(
     return {"ok": True, "review_status": "rejected"}
 
 
+def _public_department_clubs(db: Session, dept: models.Department) -> list:
+    """Published, active clubs owned by this department. Campus clubs stay out."""
+    rows = (
+        db.query(models.Club)
+        .options(joinedload(models.Club.activities))
+        .filter(
+            models.Club.department_id == dept.id,
+            models.Club.club_type == "department",
+            models.Club.status == "published",
+            models.Club.is_published == 1,
+            models.Club.is_active == 1,
+        )
+        .order_by(models.Club.display_order, models.Club.name)
+        .all()
+    )
+    seen = []
+    ids = set()
+    for row in rows:
+        if row.id in ids:
+            continue
+        ids.add(row.id)
+        activities = [
+            {"title": item.title, "event_date": item.event_date, "venue": item.venue}
+            for item in (row.activities or [])
+            if item.is_published and (item.title or "").strip()
+        ]
+        seen.append({
+            "slug": row.slug,
+            "name": row.name,
+            "description": row.intro or row.description,
+            "intro": row.intro,
+            "category": row.category,
+            "logo_url": row.logo_url,
+            "cover_url": row.cover_url,
+            "coordinator": row.coordinator,
+            "faculty_in_charge": row.faculty_in_charge,
+            "activities_text": row.activities_text,
+            "objectives": row.objectives,
+            "activities": activities,
+        })
+    return seen
+
+
 @router.get("/public/{code}")
 def public_bundle(code: str, db: Session = Depends(get_db)):
     dept = _dept(db, code)
@@ -380,7 +472,7 @@ def public_bundle(code: str, db: Session = Depends(get_db)):
         if _visible(row) and (row.image_url or row.video_url)
     ]
     return {
-        "clubs": [_club_out(row) for row in db.query(models.DepartmentClub).filter_by(department_id=dept.id, review_status="approved").all()],
+        "clubs": _public_department_clubs(db, dept),
         "events": events,
         "notices": notices,
         "projects": [_project_out(row) for row in db.query(models.DepartmentProject).filter_by(department_id=dept.id, review_status="approved").all()],
@@ -396,6 +488,8 @@ def summary(code: str, actor: dict = Depends(auth.require_actor), db: Session = 
     def count(model, pending=False):
         q = db.query(model).filter(model.department_id == dept.id)
         if pending:
+            if not hasattr(model, "review_status"):
+                return 0
             q = q.filter(model.review_status == "pending")
         return q.count()
     recent = []
@@ -410,12 +504,12 @@ def summary(code: str, actor: dict = Depends(auth.require_actor), db: Session = 
         recent.extend(builder(row) for row in rows)
     recent.sort(key=lambda item: item.get("created_at") or "", reverse=True)
     return {
-        "clubs": count(models.DepartmentClub),
+        "clubs": db.query(models.Club).filter(models.Club.department_id == dept.id, models.Club.club_type == "department").count(),
         "events": count(models.Event),
         "notices": count(models.Notice),
         "projects": count(models.DepartmentProject),
         "pending": (
-            count(models.DepartmentClub, True) + count(models.Event, True) + count(models.Notice, True)
+            count(models.Event, True) + count(models.Notice, True)
             + count(models.DepartmentProject, True) + count(models.ActivityReport, True)
             + count(models.GalleryPhoto, True)
         ),
@@ -476,6 +570,9 @@ def _save_members(db: Session, club: models.DepartmentClub, raw: Optional[str]) 
             name=member.name.strip(),
             role=(member.role or "").strip() or None,
             year_label=(member.year_label or "").strip() or None,
+            admission_number=(member.admission_number or "").strip() or None,
+            semester=(member.semester or "").strip() or None,
+            is_active=0 if member.is_active == 0 else 1,
         ))
 
 
@@ -497,12 +594,19 @@ def list_clubs(
 async def create_club(
     code: str,
     name: str = Form(...),
+    description: str = Form(""),
+    category: str = Form(""),
     coordinator: str = Form(""),
+    faculty_in_charge: str = Form(""),
+    established_on: str = Form(""),
     objectives: str = Form(""),
     activities: str = Form(""),
+    meeting_info: str = Form(""),
     academic_year: str = Form(""),
+    is_active: int = Form(1),
     members: str = Form(""),
     logo: Optional[UploadFile] = File(None),
+    cover: Optional[UploadFile] = File(None),
     actor: dict = Depends(auth.require_actor),
     db: Session = Depends(get_db),
 ):
@@ -511,11 +615,18 @@ async def create_club(
     club = models.DepartmentClub(
         department_id=dept.id,
         name=_need(name, "Club name"),
+        description=description.strip() or None,
+        category=category.strip() or None,
         coordinator=coordinator.strip() or None,
+        faculty_in_charge=faculty_in_charge.strip() or None,
+        established_on=established_on.strip() or None,
         objectives=objectives.strip() or None,
         activities=activities.strip() or None,
+        meeting_info=meeting_info.strip() or None,
         academic_year=academic_year.strip() or None,
+        is_active=1 if int(is_active or 1) else 0,
         logo_url=await _image(logo, "clubs"),
+        cover_url=await _image(cover, "clubs"),
     )
     _stamp_new(club, actor)
     _save_members(db, club, members or "[]")
@@ -528,9 +639,16 @@ async def create_club(
 @router.patch("/{code}/clubs/{item_id}")
 async def update_club(
     code: str, item_id: int,
-    name: str = Form(None), coordinator: str = Form(None), objectives: str = Form(None),
-    activities: str = Form(None), academic_year: str = Form(None), members: str = Form(None),
+    name: str = Form(None), description: str = Form(None), category: str = Form(None),
+    coordinator: str = Form(None), faculty_in_charge: str = Form(None),
+    established_on: str = Form(None), objectives: str = Form(None),
+    activities: str = Form(None), meeting_info: str = Form(None),
+    academic_year: str = Form(None), is_active: Optional[int] = Form(None),
+    members: str = Form(None),
     logo: Optional[UploadFile] = File(None),
+    cover: Optional[UploadFile] = File(None),
+    remove_logo: str = Form(None),
+    remove_cover: str = Form(None),
     actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db),
 ):
     dept = _dept(db, code)
@@ -538,14 +656,31 @@ async def update_club(
     club = _owned(db, models.DepartmentClub, item_id, dept)
     if name is not None:
         club.name = _need(name, "Club name")
-    for key, value in (("coordinator", coordinator), ("objectives", objectives), ("activities", activities), ("academic_year", academic_year)):
+    for key, value in (
+        ("description", description), ("category", category), ("coordinator", coordinator),
+        ("faculty_in_charge", faculty_in_charge), ("established_on", established_on),
+        ("objectives", objectives), ("activities", activities), ("meeting_info", meeting_info),
+        ("academic_year", academic_year),
+    ):
         if value is not None:
             setattr(club, key, value.strip() or None)
+    if is_active is not None:
+        club.is_active = 1 if int(is_active) else 0
     _save_members(db, club, members)
+    if remove_logo in ("1", "true", "yes"):
+        delete_local_file(club.logo_url)
+        club.logo_url = None
+    if remove_cover in ("1", "true", "yes"):
+        delete_local_file(club.cover_url)
+        club.cover_url = None
     logo_url = await _image(logo, "clubs")
     if logo_url:
         delete_local_file(club.logo_url)
         club.logo_url = logo_url
+    cover_url = await _image(cover, "clubs")
+    if cover_url:
+        delete_local_file(club.cover_url)
+        club.cover_url = cover_url
     _stamp_edit(club, actor)
     db.commit()
     db.refresh(club)
@@ -558,6 +693,8 @@ def delete_club(code: str, item_id: int, actor: dict = Depends(auth.require_acto
     _guard(actor, dept)
     club = _owned(db, models.DepartmentClub, item_id, dept)
     delete_local_file(club.logo_url)
+    delete_local_file(club.cover_url)
+    db.query(models.Event).filter(models.Event.club_id == club.id).update({models.Event.club_id: None})
     db.delete(club)
     db.commit()
     return {"ok": True}
@@ -593,6 +730,7 @@ async def create_managed_event(
     participant_count: Optional[int] = Form(None),
     participants_text: str = Form(""),
     report_id: Optional[int] = Form(None),
+    club_id: str = Form(""),
     poster: Optional[UploadFile] = File(None),
     photos: Optional[List[UploadFile]] = File(None),
     participants_file: Optional[UploadFile] = File(None),
@@ -623,6 +761,7 @@ async def create_managed_event(
         image_url=await _image(poster, "events"),
         photo_urls=json.dumps(await _images(photos, "events")) or None,
         category=event_type,
+        club_id=_department_club_id(db, dept, club_id),
     )
     _stamp_new(event, actor)
     _publish_flags(event, actor.get("role") == "admin")
@@ -642,7 +781,7 @@ async def update_managed_event(
     title: str = Form(None), event_type: str = Form(None), description: str = Form(None),
     event_date: str = Form(None), start_time: str = Form(None), venue: str = Form(None),
     academic_year: str = Form(None), participant_count: Optional[int] = Form(None),
-    participants_text: str = Form(None),
+    participants_text: str = Form(None), club_id: str = Form(None),
     poster: Optional[UploadFile] = File(None),
     photos: Optional[List[UploadFile]] = File(None),
     actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db),
@@ -663,6 +802,8 @@ async def update_managed_event(
             setattr(event, key, value.strip() or None)
     if participant_count is not None:
         event.participant_count = participant_count
+    if club_id is not None:
+        event.club_id = _department_club_id(db, dept, club_id)
     poster_url = await _image(poster, "events")
     if poster_url:
         delete_local_file(event.image_url)

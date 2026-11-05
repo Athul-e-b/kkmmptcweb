@@ -29,6 +29,9 @@ def _me(user: models.DepartmentUser, db: Session) -> schemas.DepartmentMe:
     return schemas.DepartmentMe(
         id=user.id,
         username=user.username,
+        name=user.name,
+        designation=user.designation,
+        email=user.email,
         department_id=dept.id,
         department_name=dept.name,
         department_code=dept.code,

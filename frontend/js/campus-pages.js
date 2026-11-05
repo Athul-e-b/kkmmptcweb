@@ -91,39 +91,6 @@
         document.getElementById('iicGallery').innerHTML = window.renderCampusGallery(data.gallery, 'No photographs have been published in the IIC gallery yet.');
     };
 
-    window.renderClubsPage = function (clubs) {
-        const jumps = document.getElementById('clubJumps');
-        const sections = document.getElementById('clubSections');
-        if (!clubs.length) {
-            jumps.innerHTML = '';
-            sections.innerHTML = '<p class="text-sm text-slate-500">No clubs have been published yet.</p>';
-            return;
-        }
-        jumps.innerHTML = clubs.map(function (club) {
-            return '<a class="campus-panel club-jump club-' + escapeHTML(club.slug) + ' p-5 block hover:border-primary" href="#' + escapeHTML(club.slug) + '">' +
-                '<p class="campus-kicker">Club</p><h2 class="font-heading font-bold text-xl mt-1">' + escapeHTML(club.name) + '</h2>' +
-                '<p class="text-sm text-slate-600 mt-2">' + escapeHTML(club.intro || '') + '</p></a>';
-        }).join('');
-        sections.innerHTML = clubs.map(function (club) {
-            const events = (club.activities || []).map(function (item) {
-                const meta = [item.event_date, item.venue].filter(Boolean).map(escapeHTML).join(' · ');
-                return '<article class="rounded-xl border border-slate-200 bg-white p-4"><h4 class="font-bold">' + escapeHTML(item.title) + '</h4>' +
-                    (meta ? '<p class="text-xs text-primary font-semibold mt-1">' + meta + '</p>' : '') +
-                    '<div class="mt-2">' + prose(item.description) + '</div></article>';
-            }).join('');
-            return '<section id="' + escapeHTML(club.slug) + '" class="campus-panel club-jump club-' + escapeHTML(club.slug) + ' p-5 sm:p-8 scroll-mt-24">' +
-                '<p class="campus-kicker">Student club</p>' +
-                '<h2 class="font-heading font-bold text-2xl sm:text-3xl mt-1">' + escapeHTML(club.name) + '</h2>' +
-                '<div class="mt-4 space-y-2">' + prose(club.intro) + '</div>' +
-                '<div class="mt-4 space-y-2">' + prose(club.description) + '</div>' +
-                '<h3 class="font-heading font-bold mt-8 mb-3">Activities</h3>' +
-                (events || '<p class="text-sm text-slate-500">No activities have been published for this club yet.</p>') +
-                '<h3 class="font-heading font-bold mt-8 mb-3">Photographs</h3>' +
-                window.renderCampusGallery(club.images, 'No photographs have been published for this club yet.') +
-                '</section>';
-        }).join('');
-    };
-
     document.addEventListener('click', function (event) {
         if (event.target && event.target.id === 'campusLightboxClose') {
             document.getElementById('campusLightbox').close();

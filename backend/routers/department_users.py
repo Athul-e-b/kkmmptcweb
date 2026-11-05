@@ -1,5 +1,9 @@
-"""Administrator management of department login accounts."""
-from typing import List
+"""Administrator management of department login accounts.
+
+Each department may have at most three accounts, including inactive ones.
+"""
+import re
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
@@ -8,6 +12,8 @@ from database import get_db
 import auth, models, schemas
 
 router = APIRouter(prefix="/api/admin/department-users", tags=["department-users"])
+MAX_DEPARTMENT_USERS = 3
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _checked_username(raw: str) -> str:
@@ -29,11 +35,36 @@ def _checked_password(password: str, confirm: str) -> str:
     return password
 
 
+def _email(raw: Optional[str]) -> Optional[str]:
+    if raw is None:
+        return None
+    email = raw.strip().lower()
+    if not email:
+        return None
+    if not EMAIL_RE.match(email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address")
+    return email
+
+
+def _username_from_email(db: Session, email: str) -> str:
+    local = re.sub(r"[^a-z0-9._-]", "", email.split("@", 1)[0].lower()) or "user"
+    local = local[:28]
+    candidate = local
+    number = 2
+    while db.query(models.DepartmentUser).filter(models.DepartmentUser.username == candidate).first():
+        candidate = f"{local[:28]}{number}"[:32]
+        number += 1
+    return _checked_username(candidate)
+
+
 def _out(user: models.DepartmentUser) -> schemas.DepartmentUserOut:
     dept = user.department
     return schemas.DepartmentUserOut(
         id=user.id,
         username=user.username,
+        name=user.name,
+        designation=user.designation,
+        email=user.email,
         department_id=user.department_id,
         department_name=dept.name if dept else "",
         department_code=dept.code if dept else "",
@@ -61,8 +92,8 @@ def _save(db: Session):
     except IntegrityError as exc:
         db.rollback()
         detail = str(getattr(exc, "orig", exc)).lower()
-        if "department_id" in detail:
-            raise HTTPException(status_code=409, detail="This department already has a login account")
+        if "email" in detail:
+            raise HTTPException(status_code=409, detail="That email address is already in use")
         raise HTTPException(status_code=409, detail="That username is already in use")
     except SQLAlchemyError:
         db.rollback()
@@ -89,16 +120,22 @@ def create_user(
     dept = db.query(models.Department).filter(models.Department.id == payload.department_id).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
-    existing = db.query(models.DepartmentUser).filter(models.DepartmentUser.department_id == dept.id).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="This department already has a login account")
-    username = _checked_username(payload.username)
+    assigned = db.query(models.DepartmentUser).filter(models.DepartmentUser.department_id == dept.id).count()
+    if assigned >= MAX_DEPARTMENT_USERS:
+        raise HTTPException(status_code=409, detail="This department already has the maximum of 3 login accounts")
+    email = _email(payload.email)
+    if db.query(models.DepartmentUser).filter(models.DepartmentUser.email == email).first():
+        raise HTTPException(status_code=409, detail="That email address is already in use")
+    username = _checked_username(payload.username) if payload.username else _username_from_email(db, email)
     if db.query(models.DepartmentUser).filter(models.DepartmentUser.username == username).first():
         raise HTTPException(status_code=409, detail="That username is already in use")
     password = _checked_password(payload.password, payload.confirm_password)
     user = models.DepartmentUser(
         department_id=dept.id,
         username=username,
+        name=payload.name.strip(),
+        designation=payload.designation.strip(),
+        email=email,
         password_hash=auth.hash_password(password),
         is_active=1,
         token_version=1,
@@ -118,15 +155,36 @@ def update_username(
     db: Session = Depends(get_db),
 ):
     user = _get_or_404(db, user_id)
-    username = _checked_username(payload.username)
-    taken = (
-        db.query(models.DepartmentUser)
-        .filter(models.DepartmentUser.username == username, models.DepartmentUser.id != user.id)
-        .first()
-    )
-    if taken:
-        raise HTTPException(status_code=409, detail="That username is already in use")
-    user.username = username
+    if payload.username:
+        username = _checked_username(payload.username)
+        taken = (
+            db.query(models.DepartmentUser)
+            .filter(models.DepartmentUser.username == username, models.DepartmentUser.id != user.id)
+            .first()
+        )
+        if taken:
+            raise HTTPException(status_code=409, detail="That username is already in use")
+        user.username = username
+    if payload.name is not None:
+        if not payload.name.strip():
+            raise HTTPException(status_code=400, detail="Name is required")
+        user.name = payload.name.strip()
+    if payload.designation is not None:
+        if not payload.designation.strip():
+            raise HTTPException(status_code=400, detail="Designation is required")
+        user.designation = payload.designation.strip()
+    if payload.email is not None:
+        email = _email(payload.email)
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+        taken = (
+            db.query(models.DepartmentUser)
+            .filter(models.DepartmentUser.email == email, models.DepartmentUser.id != user.id)
+            .first()
+        )
+        if taken:
+            raise HTTPException(status_code=409, detail="That email address is already in use")
+        user.email = email
     _save(db)
     db.refresh(user)
     return _out(user)
@@ -162,3 +220,11 @@ def set_status(
     _save(db)
     db.refresh(user)
     return _out(user)
+
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, _admin: bool = Depends(auth.require_admin), db: Session = Depends(get_db)):
+    user = _get_or_404(db, user_id)
+    db.delete(user)
+    _save(db)
+    return {"ok": True}
