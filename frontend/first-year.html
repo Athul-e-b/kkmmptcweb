@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Year – Common Curriculum | KKMMPTC</title>
+    <link rel="icon" type="image/png" href="images/ihrd.png">
+    <meta name="description" content="First-year diploma subjects, faculty, laboratories and learning resources at KKM Model Polytechnic College, Kallettumkara.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                colors: {
+                    primary: { DEFAULT: '#0066FF', dark: '#0066FF', light: '#0066FF' },
+                    secondary: { DEFAULT: '#000000', dark: '#000000' },
+                    accent: { DEFAULT: '#EBEFFB', dark: '#0066FF' }
+                },
+                fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] }
+            } }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/fx.css">
+    <link rel="stylesheet" href="css/first-year.css">
+</head>
+<body class="fy-page antialiased">
+    <header class="sticky top-0 z-[60] glass-nav border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="nav-bar-row flex items-center justify-between min-h-[4.5rem] lg:min-h-20 py-2 lg:py-0 gap-2">
+                <a href="index.html" class="site-brand flex items-center gap-2 sm:gap-3 group">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-primary to-primary-light flex items-center justify-center text-white shadow-md shrink-0">
+                        <i class="fa-solid fa-building-columns text-lg sm:text-xl"></i>
+                    </div>
+                    <div class="site-brand-text">
+                        <div class="text-[10px] font-bold text-primary tracking-wider uppercase">IHRD Govt. College</div>
+                        <h1 class="text-[11px] sm:text-sm font-bold font-heading text-slate-900 group-hover:text-primary transition leading-snug">KKM MODEL POLYTECHNIC COLLEGE, KALLETTUMKARA</h1>
+                    </div>
+                </a>
+                <nav class="hidden lg:flex items-center gap-2 lg:gap-4 text-xs font-semibold text-slate-700 shrink-0">
+                    <a href="index.html" class="hover:text-primary px-2 py-1.5">Home</a>
+                    <a href="departments.html" class="hover:text-primary px-2 py-1.5">Departments</a>
+                    <a href="admissions.html" class="hover:text-primary px-2 py-1.5">Admissions</a>
+                    <a href="grievance.html" class="hover:text-primary px-2 py-1.5">Grievance</a>
+                </nav>
+                <div class="header-tools flex items-center gap-1.5 shrink-0">
+                    <div class="header-auth">
+                        <a href="admin.html" class="header-auth-btn header-auth-admin"><i class="fa-solid fa-user-gear"></i> <span>Admin</span></a>
+                        <a href="department-login.html" class="header-auth-btn header-auth-dept"><i class="fa-solid fa-building-user"></i> <span>Login</span></a>
+                    </div>
+                    <button type="button" onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-700" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false" id="menuToggleBtn"><i class="fa-solid fa-bars text-xl" id="menuIcon"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-1 text-sm font-medium">
+            <div class="header-auth header-auth-menu">
+                <a href="admin.html" class="header-auth-btn header-auth-admin"><i class="fa-solid fa-user-gear"></i> <span>Admin</span></a>
+                <a href="department-login.html" class="header-auth-btn header-auth-dept"><i class="fa-solid fa-building-user"></i> <span>Login</span></a>
+            </div>
+            <a href="index.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Home</a>
+            <a href="departments.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Departments</a>
+            <a href="admissions.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Admissions</a>
+            <a href="grievance.html" class="block px-3 py-2 rounded-md hover:bg-slate-50">Grievance</a>
+        </div>
+    </header>
+
+    <section class="fy-hero" aria-labelledby="fyHeading">
+        <div class="fy-hero-shape fy-hero-shape-a" aria-hidden="true"></div>
+        <div class="fy-hero-shape fy-hero-shape-b" aria-hidden="true"></div>
+        <div class="fy-wrap fy-hero-copy">
+            <p class="fy-kicker"><i></i> <span id="fyRevision"></span></p>
+            <h1 id="fyHeading"></h1>
+            <p class="fy-lead" id="fyLead"></p>
+            <p class="fy-lead" id="fyDescription" hidden></p>
+            <div class="fy-actions">
+                <a class="fy-btn fy-btn-primary" href="#fy-subjects">Explore Subjects</a>
+                <a class="fy-btn fy-btn-ghost" href="#fy-faculty">Meet Our Faculty</a>
+            </div>
+            <div id="fyAnnouncements"></div>
+        </div>
+    </section>
+
+    <main class="fy-wrap fy-main" id="fyMain" aria-busy="true"></main>
+
+    <footer class="bg-slate-950 text-slate-400 py-10 border-t border-slate-800 text-xs text-center">
+        <div class="max-w-7xl mx-auto px-4">&copy; 2026 K. Karunakaran Memorial Model Polytechnic College, Kallettumkara (IHRD Govt. Institution).</div>
+    </footer>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/first-year.js"></script>
+    <script src="js/enhance.js"></script>
+    <script src="js/fx.js"></script>
+</body>
+</html>

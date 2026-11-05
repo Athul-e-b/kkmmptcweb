@@ -7,7 +7,7 @@ database with the same admin-password check, instead of admin.html's
 original localStorage-only, no-login version.
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Enum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import enum
 from database import Base
@@ -525,5 +525,157 @@ class ActivityReport(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     department = relationship("Department")
+
+
+class FirstYearRevision(Base):
+    """A syllabus revision for the common first-year curriculum. Older rows stay in place."""
+    __tablename__ = "first_year_revisions"
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(20), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    academic_year = Column(String(20), nullable=True)
+    status = Column(String(20), nullable=False, default="active")
+    notes = Column(Text, nullable=True)
+    heading = Column(String(200), nullable=True)
+    heading_accent = Column(String(120), nullable=True)
+    intro_title = Column(String(160), nullable=True)
+    description = Column(Text, nullable=True)
+    hero_subtitle = Column(Text, nullable=True)
+    hero_image_url = Column(String(255), nullable=True)
+    announcements = Column(Text, nullable=True)
+    overview_text = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    semesters = relationship("FirstYearSemester", back_populates="revision", cascade="all, delete-orphan")
+    subjects = relationship("FirstYearSubject", back_populates="revision")
+
+
+class FirstYearSemester(Base):
+    __tablename__ = "first_year_semesters"
+    __table_args__ = (UniqueConstraint("revision_id", "number", name="uq_fy_semester"),)
+    id = Column(Integer, primary_key=True, index=True)
+    revision_id = Column(Integer, ForeignKey("first_year_revisions.id"), nullable=False, index=True)
+    number = Column(Integer, nullable=False)
+    title = Column(String(80), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="active")
+    revision = relationship("FirstYearRevision", back_populates="semesters")
+    subjects = relationship("FirstYearSubject", back_populates="semester")
+
+
+class FirstYearSubject(Base):
+    __tablename__ = "first_year_subjects"
+    __table_args__ = (UniqueConstraint("revision_id", "course_code", name="uq_fy_course_code"),)
+    id = Column(Integer, primary_key=True, index=True)
+    revision_id = Column(Integer, ForeignKey("first_year_revisions.id"), nullable=False, index=True)
+    semester_id = Column(Integer, ForeignKey("first_year_semesters.id"), nullable=False, index=True)
+    course_code = Column(String(20), nullable=False)
+    name = Column(String(200), nullable=False)
+    category = Column(String(20), nullable=False, default="shared")
+    description = Column(Text, nullable=True)
+    syllabus_url = Column(String(255), nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
+    display_order = Column(Integer, nullable=False, default=0)
+    revision = relationship("FirstYearRevision", back_populates="subjects")
+    semester = relationship("FirstYearSemester", back_populates="subjects")
+    programmes = relationship("FirstYearSubjectProgramme", back_populates="subject", cascade="all, delete-orphan")
+    assignments = relationship("FirstYearAssignment", back_populates="subject")
+
+
+class FirstYearSubjectProgramme(Base):
+    __tablename__ = "first_year_subject_programmes"
+    __table_args__ = (UniqueConstraint("subject_id", "department_id", name="uq_fy_subject_programme"),)
+    id = Column(Integer, primary_key=True, index=True)
+    subject_id = Column(Integer, ForeignKey("first_year_subjects.id"), nullable=False, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    subject = relationship("FirstYearSubject", back_populates="programmes")
+    department = relationship("Department")
+
+
+class FirstYearFaculty(Base):
+    """Public first-year profile for an existing staff member. Does not replace the staff row."""
+    __tablename__ = "first_year_faculty"
+    id = Column(Integer, primary_key=True, index=True)
+    staff_id = Column(Integer, ForeignKey("staff.id"), unique=True, nullable=False, index=True)
+    profile = Column(Text, nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
+    staff = relationship("Staff")
+
+
+class FirstYearAssignment(Base):
+    __tablename__ = "first_year_assignments"
+    __table_args__ = (
+        UniqueConstraint("staff_id", "subject_id", "department_id", "academic_year", name="uq_fy_assignment"),
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    staff_id = Column(Integer, ForeignKey("staff.id"), nullable=False, index=True)
+    subject_id = Column(Integer, ForeignKey("first_year_subjects.id"), nullable=False, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    semester_number = Column(Integer, nullable=False)
+    academic_year = Column(String(20), nullable=False, default="")
+    is_active = Column(Integer, nullable=False, default=1)
+    subject = relationship("FirstYearSubject", back_populates="assignments")
+    staff = relationship("Staff")
+    department = relationship("Department")
+
+
+class FirstYearResource(Base):
+    __tablename__ = "first_year_resources"
+    id = Column(Integer, primary_key=True, index=True)
+    revision_id = Column(Integer, ForeignKey("first_year_revisions.id"), nullable=True, index=True)
+    semester_id = Column(Integer, ForeignKey("first_year_semesters.id"), nullable=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+    subject_id = Column(Integer, ForeignKey("first_year_subjects.id"), nullable=True, index=True)
+    title = Column(String(200), nullable=False)
+    kind = Column(String(30), nullable=False, default="other")
+    description = Column(Text, nullable=True)
+    file_url = Column(String(255), nullable=True)
+    original_name = Column(String(255), nullable=True)
+    is_published = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    semester = relationship("FirstYearSemester")
+    department = relationship("Department")
+    subject = relationship("FirstYearSubject")
+
+
+class FirstYearLaboratory(Base):
+    __tablename__ = "first_year_laboratories"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(160), nullable=False)
+    description = Column(Text, nullable=True)
+    facilities_text = Column(Text, nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
+    programmes = relationship("FirstYearLabProgramme", back_populates="laboratory", cascade="all, delete-orphan")
+    subjects = relationship("FirstYearLabSubject", back_populates="laboratory", cascade="all, delete-orphan")
+    photos = relationship("FirstYearLabPhoto", back_populates="laboratory", cascade="all, delete-orphan")
+
+
+class FirstYearLabProgramme(Base):
+    __tablename__ = "first_year_lab_programmes"
+    __table_args__ = (UniqueConstraint("laboratory_id", "department_id", name="uq_fy_lab_programme"),)
+    id = Column(Integer, primary_key=True, index=True)
+    laboratory_id = Column(Integer, ForeignKey("first_year_laboratories.id"), nullable=False, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    laboratory = relationship("FirstYearLaboratory", back_populates="programmes")
+    department = relationship("Department")
+
+
+class FirstYearLabSubject(Base):
+    __tablename__ = "first_year_lab_subjects"
+    __table_args__ = (UniqueConstraint("laboratory_id", "subject_id", name="uq_fy_lab_subject"),)
+    id = Column(Integer, primary_key=True, index=True)
+    laboratory_id = Column(Integer, ForeignKey("first_year_laboratories.id"), nullable=False, index=True)
+    subject_id = Column(Integer, ForeignKey("first_year_subjects.id"), nullable=False, index=True)
+    laboratory = relationship("FirstYearLaboratory", back_populates="subjects")
+    subject = relationship("FirstYearSubject")
+
+
+class FirstYearLabPhoto(Base):
+    __tablename__ = "first_year_lab_photos"
+    id = Column(Integer, primary_key=True, index=True)
+    laboratory_id = Column(Integer, ForeignKey("first_year_laboratories.id"), nullable=False, index=True)
+    image_url = Column(String(255), nullable=False)
+    caption = Column(String(200), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    laboratory = relationship("FirstYearLaboratory", back_populates="photos")
 
 

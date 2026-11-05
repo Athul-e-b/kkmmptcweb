@@ -163,6 +163,22 @@ EXTRA_COLUMNS = {
         "photo_url": "VARCHAR(255)",
         "is_active": "INTEGER DEFAULT 1",
     },
+    "first_year_revisions": {
+        "heading": "VARCHAR(200)",
+        "heading_accent": "VARCHAR(120)",
+        "intro_title": "VARCHAR(160)",
+        "description": "TEXT",
+        "hero_subtitle": "TEXT",
+        "hero_image_url": "VARCHAR(255)",
+        "announcements": "TEXT",
+        "overview_text": "TEXT",
+    },
+    "first_year_semesters": {
+        "description": "TEXT",
+    },
+    "first_year_resources": {
+        "original_name": "VARCHAR(255)",
+    },
 }
 
 
@@ -330,6 +346,139 @@ def seed_campus_pages_if_missing():
             for member in list(club.members):
                 delete_local_file(member.photo_url)
             db.delete(club)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+FIRST_YEAR_PROGRAMMES = ("BM", "EEE", "EL", "CG", "CT", "RPA")
+FIRST_YEAR_ALIAS = {"EE": "EEE", "RP": "RPA"}
+# Revision 2026 reference rows. Course codes stay distinct even when names are similar.
+FIRST_YEAR_SUBJECTS = [
+    (1, "1001", "English for Technical Communication", "ALL"),
+    (1, "1002", "Fundamentals of Engineering Mathematics", "ALL"),
+    (1, "1008", "Foundational IT Skills", "ALL"),
+    (1, "1009", "Health and Physical Education", "ALL"),
+    (1, "1004", "Engineering Drawing with CAD", "BM,EL,CG,CT,RP"),
+    (1, "1003", "Engineering Graphics", "EE"),
+    (1, "1041", "Elementary Concepts of Electronics", "BM,EL"),
+    (1, "1031", "Basic Electrical and Electronics Engineering", "EE"),
+    (1, "1131", "Problem Solving and Python Programming", "CG,CT,RP"),
+    (2, "2002B", "Engineering Physics for Applied Electrical Technology and Computing", "ALL"),
+    (2, "2003A", "Chemistry for Engineering Practices", "ALL"),
+    (2, "2005", "Environmental Sustainability and Ethics", "ALL"),
+    (2, "2001B", "Mathematics for Electrical Sciences", "BM,EE,EL"),
+    (2, "2001C", "Mathematics for Computer Technology", "CG,CT,RP"),
+    (2, "2009B", "Engineering Workshop Practice", "BM,EL,CG,CT,RP"),
+    (2, "2009A", "General Engineering Workshop", "EE"),
+    (2, "2041", "Elements of Electrical & Electronics Engineering", "BM,EL"),
+    (2, "2042", "Electronic Devices and Applications", "BM,EL"),
+    (2, "2048", "Elements of Electrical & Electronics Engineering Lab", "BM,EL"),
+    (2, "2049", "Electronic Devices and Applications Lab", "BM,EL"),
+    (2, "2131", "Fundamentals of Electrical and Electronics Engineering", "CG,CT,RP"),
+    (2, "2132", "Programming in C", "CG,CT,RP"),
+    (2, "2138", "Fundamentals of Electrical and Electronics Engineering Lab", "CG,CT,RP"),
+    (2, "2139", "Programming in C Lab", "CG,CT,RP"),
+    (2, "2031", "Elementary Concepts of Electrical & Electronics Engineering", "EE"),
+    (2, "2032", "Electric Circuits and Systems", "EE"),
+    (2, "2038", "Electrical and Electronics Practice Lab", "EE"),
+    (2, "2039", "Fundamentals of Electrical Engineering Lab", "EE"),
+]
+
+
+def _apply_first_year_page_defaults(revision) -> bool:
+    """Fill the public page copy once. Later admin edits are left alone."""
+    if (revision.heading or "").strip():
+        return False
+    revision.heading = "Your First Step Towards"
+    revision.heading_accent = "Engineering Excellence"
+    revision.intro_title = "First year"
+    revision.hero_subtitle = (
+        "Explore your first-year academic journey, discover your subjects, "
+        "meet your faculty and access learning resources at KKMMPTC."
+    )
+    revision.overview_text = "Figures below are counted from the published first-year records."
+    return True
+
+
+def seed_first_year_if_missing():
+    """Insert the Revision 2026 subject list once. Later admin edits are left alone."""
+    import models
+    db = SessionLocal()
+    try:
+        existing = db.query(models.FirstYearRevision).filter(models.FirstYearRevision.code == "2026").first()
+        if existing:
+            if _apply_first_year_page_defaults(existing):
+                db.commit()
+            return
+        departments = {
+            row.code: row
+            for row in db.query(models.Department).filter(models.Department.code.in_(FIRST_YEAR_PROGRAMMES)).all()
+        }
+        if not departments:
+            return
+        revision = models.FirstYearRevision(
+            code="2026",
+            name="Revision 2026",
+            status="active",
+            notes="Initial reference records from the supplied Revision 2026 comparison. Correct any subject against the official approved syllabus.",
+            heading="Your First Step Towards",
+            heading_accent="Engineering Excellence",
+            intro_title="First year",
+            hero_subtitle=(
+                "Explore your first-year academic journey, discover your subjects, "
+                "meet your faculty and access learning resources at KKMMPTC."
+            ),
+            overview_text="Figures below are counted from the published first-year records.",
+        )
+        db.add(revision)
+        db.flush()
+        semesters = {}
+        for number, title in ((1, "Semester 1"), (2, "Semester 2")):
+            row = models.FirstYearSemester(revision_id=revision.id, number=number, title=title, status="active")
+            db.add(row)
+            db.flush()
+            semesters[number] = row
+        total = len(departments)
+
+        def linked(raw):
+            if raw == "ALL":
+                codes = list(FIRST_YEAR_PROGRAMMES)
+            else:
+                codes = []
+                for part in raw.split(","):
+                    code = FIRST_YEAR_ALIAS.get(part.strip().upper(), part.strip().upper())
+                    if code not in codes:
+                        codes.append(code)
+            return [departments[code] for code in codes if code in departments]
+
+        for index, (number, code, name, raw) in enumerate(FIRST_YEAR_SUBJECTS, start=1):
+            depts = linked(raw)
+            if not depts:
+                continue
+            count = len(depts)
+            if total and count >= total:
+                category = "common"
+            elif count <= 1:
+                category = "branch"
+            else:
+                category = "shared"
+            subject = models.FirstYearSubject(
+                revision_id=revision.id,
+                semester_id=semesters[number].id,
+                course_code=code,
+                name=name,
+                category=category,
+                is_active=1,
+                display_order=index,
+            )
+            db.add(subject)
+            db.flush()
+            for dept in depts:
+                db.add(models.FirstYearSubjectProgramme(subject_id=subject.id, department_id=dept.id))
         db.commit()
     except Exception:
         db.rollback()

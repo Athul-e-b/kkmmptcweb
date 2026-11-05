@@ -23,6 +23,7 @@
         }
     </script>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/first-year-admin.css">
     <link rel="stylesheet" href="css/fx.css">
 </head>
 <body class="cms-app antialiased bg-slate-100 text-slate-800 min-h-screen">
@@ -73,6 +74,7 @@
                 <button type="button" class="cms-nav" data-section="gallery"><i class="fa-solid fa-images"></i> Gallery</button>
                 <button type="button" class="cms-nav" data-section="iic"><i class="fa-solid fa-lightbulb"></i> IIC Management</button>
                 <button type="button" class="cms-nav" data-section="clubs"><i class="fa-solid fa-people-group"></i> Clubs Management</button>
+                <button type="button" class="cms-nav" data-section="first-year"><i class="fa-solid fa-graduation-cap"></i> First Year Management</button>
                 <button type="button" class="cms-nav" data-section="notices"><i class="fa-solid fa-bullhorn"></i> Notices</button>
                 <button type="button" class="cms-nav" data-section="ticker"><i class="fa-solid fa-bell"></i> Scrolling Notifications</button>
                 <button type="button" class="cms-nav" data-section="admissions"><i class="fa-solid fa-file-lines"></i> Admissions</button>
@@ -234,6 +236,10 @@
                 <div id="clubsAdmin" class="space-y-4"></div>
             </section>
 
+            <section data-cms="first-year" class="cms-section hidden">
+                <div id="fyAdmin" class="space-y-4"></div>
+            </section>
+
             <section data-cms="admissions" class="cms-section hidden">
                 <div class="bg-white rounded-2xl border p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -276,6 +282,7 @@
     <script src="js/admin.js"></script>
     <script src="js/cms-campus.js"></script>
     <script src="js/cms-clubs-ui.js"></script>
+    <script src="js/cms-first-year.js"></script>
     <script src="js/cms-admin.js"></script>
     <script src="js/enhance.js"></script>
     <script src="js/fx.js"></script>

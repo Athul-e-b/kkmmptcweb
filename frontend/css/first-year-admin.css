@@ -1,0 +1,196 @@
+#fyAdmin {
+    --fy-lilac: #D9D7FD;
+    --fy-mid: #847EFC;
+    --fy-deep: #6548DC;
+    --fy-violet: #5623DC;
+    --fy-ink: #26155C;
+    color: var(--fy-ink);
+}
+
+#fyAdmin .fy-shell {
+    background: #fff;
+    border: 1px solid #e4e1fb;
+    border-radius: 1.25rem;
+    padding: 1rem;
+}
+
+#fyAdmin .fy-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+#fyAdmin .fy-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fy-violet);
+    font-weight: 700;
+}
+
+#fyAdmin h2 {
+    margin: 0.15rem 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+#fyAdmin .fy-head p {
+    margin: 0;
+    color: #5c5688;
+    font-size: 0.8rem;
+}
+
+#fyAdmin .fy-tabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    padding-bottom: 0.2rem;
+}
+
+#fyAdmin .fy-tabs button {
+    border: 1px solid #ddd8fb;
+    background: #f7f6ff;
+    color: var(--fy-ink);
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#fyAdmin .fy-tabs button[aria-selected="true"] {
+    background: var(--fy-violet);
+    color: #fff;
+    border-color: var(--fy-violet);
+}
+
+#fyAdmin .fy-card,
+#fyAdmin form {
+    background: #fbfaff;
+    border: 1px solid #ece9ff;
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+#fyAdmin label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+#fyAdmin .fy-label {
+    margin-bottom: 0.35rem;
+}
+
+#fyAdmin .fy-input,
+#fyAdmin input:not([type="checkbox"]):not([type="file"]),
+#fyAdmin select,
+#fyAdmin textarea {
+    width: 100%;
+    margin-top: 0.25rem;
+    border: 1px solid #ddd8fb;
+    border-radius: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.8rem;
+    background: #fff;
+    color: var(--fy-ink);
+}
+
+#fyAdmin .fy-save,
+#fyAdmin button[type="submit"] {
+    background: var(--fy-violet);
+    color: #fff;
+    border: 0;
+    border-radius: 0.7rem;
+    padding: 0.55rem 1rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+#fyAdmin .fy-quiet,
+#fyAdmin .fy-preview {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--fy-mid);
+    color: var(--fy-violet);
+    border-radius: 0.7rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+#fyAdmin .fy-filters {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+#fyAdmin .fy-table-wrap {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border: 1px solid #ece9ff;
+    border-radius: 1rem;
+}
+
+#fyAdmin .fy-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    min-width: 640px;
+}
+
+#fyAdmin .fy-table th {
+    text-align: left;
+    background: var(--fy-lilac);
+    padding: 0.65rem;
+}
+
+#fyAdmin .fy-table td {
+    padding: 0.65rem;
+    border-top: 1px solid #efeefe;
+    vertical-align: top;
+}
+
+#fyAdmin .fy-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+#fyAdmin .fy-actions button,
+#fyAdmin .fy-table button {
+    background: transparent;
+    color: var(--fy-violet);
+    font-weight: 700;
+}
+
+#fyAdmin .fy-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+#fyAdmin .fy-loading,
+#fyAdmin .fy-error {
+    padding: 1rem;
+    font-size: 0.85rem;
+}
+
+#fyAdmin .fy-error {
+    color: #b42318;
+}
+
+@media (min-width: 640px) {
+    #fyAdmin .fy-shell {
+        padding: 1.4rem;
+    }
+
+    #fyAdmin .fy-filters {
+        grid-template-columns: 1.4fr 0.8fr 0.8fr;
+    }
+}

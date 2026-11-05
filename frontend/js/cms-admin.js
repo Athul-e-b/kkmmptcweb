@@ -45,6 +45,7 @@ function showCmsSection(name) {
         const back = document.getElementById('cmsBackdrop');
         if (back) back.classList.add('hidden');
     }
+    if (name === 'first-year' && typeof cmsLoadFirstYear === 'function') cmsLoadFirstYear();
 }
 
 function inp(name, label, value = '', extra = '') {

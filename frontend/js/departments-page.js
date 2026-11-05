@@ -372,6 +372,7 @@ async function loadDepartmentsPage() {
     if (code === 'CM') code = 'CG';
     if (code === 'RP') code = 'RPA';
     if (code === 'EE') code = 'EEE';
+    if (code === 'BME') code = 'BM';
     container.innerHTML = departmentSkeleton();
     try {
         if (code) {

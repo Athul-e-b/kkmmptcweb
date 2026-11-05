@@ -479,6 +479,7 @@ function executeGlobalSearch() {
         { text: 'Industry on Campus (IOC) Earn while you learn Scheme', link: 'index.html#placements' },
         { text: 'Institution\'s Innovation Council (IIC)', link: 'iic.html' },
         { text: 'Student Clubs', link: 'clubs.html' },
+        { text: 'First Year Common Curriculum Subjects and Faculty', link: 'first-year.html' },
         { text: 'Campus Facilities: Library, Specialized Labs, NSS, Women Cell', link: 'index.html#facilities' },
         { text: 'Downloads: Syllabus, Prospectus, AICTE EOA Documents', link: 'index.html#downloads' },
         { text: 'Grievance Redressal: File academic, administrative, or ragging complaints', link: 'grievance.html' },
