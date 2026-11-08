@@ -283,7 +283,7 @@ function openDeptModal(code) {
                 <span class="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">${d.intake || ''} Seats ${d.duration ? '(' + escapeHTML(d.duration) + ')' : ''}</span>
                 <h3 class="text-2xl font-bold font-heading text-slate-900 mt-2 mb-1">${escapeHTML(d.course_name || d.name)}</h3>
                 <div class="flex items-center gap-2 text-xs text-primary font-semibold mb-3">
-                    ${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-8 h-8 rounded-full object-cover" alt="">` : ''}
+                    ${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-16 h-16 rounded-full object-cover" alt="">` : ''}
                     <span>Head of Department: ${escapeHTML(hod ? hod.name : 'Not provided')}</span>
                 </div>
                 ${hodIsInCharge(hod) ? `<p class="text-xs font-semibold text-primary mb-3">In Charge</p>` : ''}
@@ -309,8 +309,8 @@ async function loadModalHod(deptCode) {
         const hod = staff.find(s => s.role === 'HOD');
         if (!hod) return;
         const photo = hod.photo_url
-            ? `<img src="${hod.photo_url}" alt="${escapeHTML(hod.name)}" class="w-8 h-8 rounded-full object-cover">`
-            : `<span class="w-8 h-8 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center font-bold text-xs">${escapeHTML(hod.name.charAt(0))}</span>`;
+            ? `<img src="${hod.photo_url}" alt="${escapeHTML(hod.name)}" class="w-16 h-16 rounded-full object-cover">`
+            : `<span class="w-16 h-16 rounded-full bg-primary/10 text-primary inline-flex items-center justify-center font-bold text-xs">${escapeHTML(hod.name.charAt(0))}</span>`;
         hodLine.innerHTML = `
             ${photo}
             <span>Head of Department: ${escapeHTML(hod.name)}${hod.email ? ` <span class="text-slate-400 font-normal">· ${escapeHTML(hod.email)}</span>` : ''}</span>
@@ -337,7 +337,7 @@ async function renderGallery() {
             const isVideo = (p.media_type === 'video') || p.video_url;
             const thumb = p.image_url || '';
             return `
-            <div class="gallery-item ${escapeHTML(p.category || '')} relative rounded-xl overflow-hidden shadow-sm group cursor-pointer h-52" onclick="openGalleryItem(${i})">
+            <div class="gallery-item ${escapeHTML(p.category || '')} relative rounded-xl overflow-hidden shadow-sm group cursor-pointer h-[19.5rem]" onclick="openGalleryItem(${i})">
                 ${isVideo
                     ? `<video src="${escapeHTML(p.video_url || '')}" class="w-full h-full object-cover bg-slate-900" muted></video>`
                     : `<img src="${escapeHTML(thumb)}" alt="${escapeHTML(p.title || p.caption || 'Campus photo')}" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">`}
@@ -523,7 +523,7 @@ async function renderHomeDepartments() {
             const img = d.image_url || 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=800';
             return `
             <div class="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition border border-slate-200 flex flex-col group">
-                <div class="relative h-48 overflow-hidden">
+                <div class="relative h-72 overflow-hidden">
                     <img src="${escapeHTML(img)}" alt="${escapeHTML(d.name)}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                     <div class="absolute top-3 right-3 bg-primary text-white text-[11px] font-bold px-2.5 py-1 rounded-md">${d.intake || 60} Seats</div>
                 </div>
@@ -605,7 +605,7 @@ async function renderEventsBoard() {
     const past = combined.filter((ev) => ev.event_date && ev.event_date < today);
     const card = (ev) => `
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden card-hover-lift">
-            ${ev.image_url ? `<img src="${ev.image_url}" alt="${escapeHTML(ev.title)}" class="w-full h-32 object-cover" loading="lazy">` : `<div class="w-full h-32 bg-primary/5 flex items-center justify-center text-primary"><i class="fa-solid fa-calendar-star text-2xl"></i></div>`}
+            ${ev.image_url ? `<img src="${ev.image_url}" alt="${escapeHTML(ev.title)}" class="w-full h-48 object-cover" loading="lazy">` : `<div class="w-full h-48 bg-primary/5 flex items-center justify-center text-primary"><i class="fa-solid fa-calendar-star text-2xl"></i></div>`}
             <div class="p-3">
                 <div class="flex items-center gap-2 mb-1">
                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">${ev.department_id ? escapeHTML(deptMap[ev.department_id] || 'Dept') : 'College-wide'}</span>

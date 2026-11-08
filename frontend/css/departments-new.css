@@ -149,7 +149,7 @@
 
 .dp-media {
     position: relative;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 15;
     background: var(--color-surface-card);
     overflow: hidden;
 }
@@ -306,14 +306,14 @@
     padding: 0.55rem 0.75rem;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
     font-size: 0.8rem;
-    max-width: min(16rem, 70%);
+    max-width: min(20rem, 92%);
 }
 
 .dp-chip strong, .dp-chip span { display: block; }
 .dp-chip span { color: rgba(0, 0, 0, 0.55); font-size: 0.72rem; }
 .dp-chip img, .dp-avatar {
-    width: 2.2rem;
-    height: 2.2rem;
+    width: 4.4rem;
+    height: 4.4rem;
     border-radius: 50%;
     object-fit: cover;
     background: var(--color-surface-card);
@@ -394,7 +394,7 @@
 }
 .dp-club-cover {
     position: relative;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 15;
     overflow: hidden;
     background: linear-gradient(145deg, var(--dp-club-wash), #fff 70%);
 }
@@ -418,8 +418,8 @@
     position: absolute;
     left: 0.8rem;
     bottom: 0.8rem;
-    width: 3rem;
-    height: 3rem;
+    width: 4.5rem;
+    height: 4.5rem;
     object-fit: cover;
     object-position: center;
     border: 3px solid #fff;
@@ -593,13 +593,18 @@
     box-shadow: 0 10px 22px rgba(38, 21, 92, 0.05);
 }
 .dp-person img, .dp-person .dp-avatar {
-    width: 4.4rem;
-    height: 4.4rem;
+    width: 6.6rem;
+    height: 6.6rem;
     flex-shrink: 0;
     border-radius: 1.05rem;
     object-fit: cover;
     background: var(--dp-lilac);
     color: var(--dp-violet);
+}
+.dp-person.dp-hod img,
+.dp-person.dp-hod .dp-avatar {
+    width: 8.8rem;
+    height: 8.8rem;
 }
 .dp-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .dp-pills span {
@@ -671,7 +676,7 @@
         #fff;
 }
 #dp-labs .dp-code { background: transparent; color: var(--dp-deep); padding: 0; }
-#dp-gallery .dp-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); }
+#dp-gallery .dp-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
 #dp-gallery .dp-media { aspect-ratio: 1; }
 
 .dp-page header a.text-primary {

@@ -1539,7 +1539,7 @@ input:focus, select:focus, textarea:focus {
 }
 .campus-photo {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 8 / 9;
     object-fit: cover;
     object-position: center;
     background: #EBEFFB;
@@ -1600,6 +1600,14 @@ dialog.campus-lightbox img {
     .campus-grid button:hover { transform: none; }
 }
 
+.principal-portrait {
+    width: min(14rem, 100%);
+    aspect-ratio: 1;
+    height: auto;
+}
+@media (min-width: 640px) {
+    .principal-portrait { width: min(18rem, 100%); }
+}
 img.rounded-full.object-cover,
 #principalPhoto {
     object-fit: contain;
@@ -1627,7 +1635,7 @@ img.rounded-full.object-cover,
 #iicHeroFigure img {
     width: 100%;
     height: 100%;
-    max-height: 22rem;
+    max-height: 33rem;
     object-fit: cover;
     object-position: center;
 }
@@ -1683,7 +1691,7 @@ img.rounded-full.object-cover,
 }
 .image-frame.campus-photo {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 8 / 9;
     height: auto;
     object-fit: unset;
 }

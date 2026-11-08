@@ -45,7 +45,7 @@ function hodBlock(d) {
     return `
         <div class="text-center mt-4 bg-primary/5 border border-primary/20 rounded-xl p-4">
             <p class="text-[10px] font-bold uppercase tracking-wider text-primary">Head of Department</p>
-            ${avatar(hod, 'w-24 h-24 rounded-full object-cover mx-auto')}
+            ${avatar(hod, 'w-48 h-48 rounded-full object-cover mx-auto')}
             <p class="font-bold text-sm text-slate-900 mt-2">${dpText(hod.name)}</p>
             ${hodIsInCharge(hod) ? `<p class="text-[11px] font-semibold text-primary mt-0.5">In Charge</p>` : ''}
         </div>`;
@@ -211,7 +211,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
             ${d.mission ? `<article class="dp-note dp-reveal"><h3>Mission</h3><p>${dpText(d.mission)}</p></article>` : ''}
         </div></section>` : ''}
         ${(hod || faculty.length) ? `<section class="dp-section" id="dp-people"><h3>Head of department and faculty</h3><div class="dp-grid">${[hod, ...faculty].filter(Boolean).map((person) => `
-            <article class="dp-person dp-reveal">${avatar(person)}<div><strong>${dpText(person.name)}</strong>${person.role || person.designation ? `<div>${dpText(person.role === 'HOD' ? 'Head of Department' : (person.designation || person.role))}</div>` : ''}</div></article>`).join('')}</div></section>` : ''}
+            <article class="dp-person${person.role === 'HOD' ? ' dp-hod' : ''} dp-reveal">${avatar(person)}<div><strong>${dpText(person.name)}</strong>${person.role || person.designation ? `<div>${dpText(person.role === 'HOD' ? 'Head of Department' : (person.designation || person.role))}</div>` : ''}</div></article>`).join('')}</div></section>` : ''}
         ${labs.length ? `<section class="dp-section" id="dp-labs"><h3>Laboratories and facilities</h3><div class="dp-grid">${labs.map((lab) => `<article class="dp-card dp-reveal"><div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(lab)}</h3></div></article>`).join('')}</div></section>` : ''}
         ${careers.length ? `<section class="dp-section" id="dp-careers"><h3>Career paths</h3><div class="dp-pills">${careers.map((item) => `<span>${dpText(item)}</span>`).join('')}</div></section>` : ''}
         <section class="dp-section dp-clubs" id="dp-clubs">
