@@ -6,6 +6,7 @@ from database import get_db
 from dept_codes import canonical_dept_code
 from file_storage import IMAGE_EXT, save_upload, delete_local_file
 import models, schemas, auth
+from department_labs import replace_labs_from_text
 
 router = APIRouter(prefix="/api/departments", tags=["departments"])
 
@@ -85,12 +86,14 @@ async def update_department(
     fields = {
         "name": name, "description": description, "vision": vision, "mission": mission,
         "phone": phone, "email": email, "course_name": course_name, "duration": duration,
-        "eligibility": eligibility, "other_details": other_details, "labs_text": labs_text,
+        "eligibility": eligibility, "other_details": other_details,
         "career_text": career_text,
     }
     for key, val in fields.items():
         if val is not None:
             setattr(dept, key, val.strip() if isinstance(val, str) else val)
+    if labs_text is not None:
+        replace_labs_from_text(db, dept, labs_text)
     if code is not None:
         dept.code = code.strip().upper()
     if intake is not None:

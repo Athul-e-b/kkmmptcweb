@@ -104,7 +104,7 @@ async function dmFetch(path, options) {
     const opts = options || {};
     const headers = Object.assign({}, opts.headers || {});
     if (dmToken()) headers.Authorization = 'Bearer ' + dmToken();
-    const res = await fetch(path, Object.assign({}, opts, { headers }));
+    const res = await fetch(path, Object.assign({ cache: 'no-store' }, opts, { headers }));
     let data = null;
     try { data = await res.json(); } catch (err) { /* empty */ }
     if (res.status === 401) {
@@ -201,6 +201,7 @@ function renderPanel() {
     if (dm.panel === 'home') return renderHome(main);
     if (dm.panel === 'details') return renderDetails(main);
     if (dm.panel === 'faculty') return renderFaculty(main);
+    if (dm.panel === 'labs') return renderLabs(main);
     if (dm.panel === 'accounts') return renderAccounts(main);
     if (dm.panel === 'approvals') return renderApprovals(main);
     if (dm.panel === 'clubs') return renderOwnClubs(main);
@@ -212,6 +213,7 @@ async function renderHome(main) {
     try {
         const data = await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/summary`);
         const cards = [
+            ['Laboratories', data.laboratories || 0, 'labs'],
             ['Clubs', data.clubs, 'clubs'],
             ['Events', data.events, 'events'],
             ['Notices', data.notices, 'notices'],
@@ -245,7 +247,7 @@ async function renderDetails(main) {
     const fields = [
         ['name', 'Department name'], ['description', 'Overview'], ['vision', 'Vision'], ['mission', 'Mission'],
         ['course_name', 'Course'], ['duration', 'Duration'], ['intake', 'Intake'], ['eligibility', 'Eligibility'],
-        ['labs_text', 'Laboratories'], ['career_text', 'Career paths'], ['phone', 'Phone'], ['email', 'Email'],
+        ['career_text', 'Career paths'], ['phone', 'Phone'], ['email', 'Email'],
         ['other_details', 'Other details'],
     ];
     main.innerHTML = `<form class="dm-card" id="dmProfile"><div class="dm-head"><h2>Department details</h2><a class="dm-soft" href="departments.html?department=${encodeURIComponent(dm.code)}" target="_blank" rel="noopener">Preview</a></div><p>These details publish as soon as you save.</p>${fields.map(([name, label]) => `<label>${label}${name === 'intake' ? `<input name="${name}" type="number" value="${dept[name] == null ? '' : escapeHTML(String(dept[name]))}">` : `<textarea name="${name}">${escapeHTML(dept[name] || '')}</textarea>`}</label>`).join('')}<label>Department photo<input type="file" name="image" accept="image/jpeg,image/png,image/webp"></label><button class="dm-primary" type="submit">Save</button></form>`;
@@ -313,6 +315,66 @@ function openFacultyForm(departmentId, person) {
             dialog.close();
             dmToast('Faculty saved.');
             renderFaculty(document.getElementById('dmMain'));
+        } catch (err) { dmToast(err.message); }
+    };
+}
+
+async function renderLabs(main) {
+    main.innerHTML = '<div class="dm-skel"></div>';
+    let rows = [];
+    try {
+        const data = await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/laboratories`);
+        rows = data.laboratories || [];
+    } catch (err) {
+        main.innerHTML = `<p>${escapeHTML(err.message)}</p>`;
+        return;
+    }
+    const cards = rows.map((lab) => {
+        const photo = lab.image_url ? `<img src="${escapeHTML(lab.image_url)}" alt="" style="width:4.5rem;height:4.5rem;object-fit:cover;border-radius:12px">` : '';
+        const status = lab.is_active ? 'Visible' : 'Hidden';
+        return `<article class="dm-card">${photo}<span class="dm-status ${lab.is_active ? 'dm-approved' : 'dm-pending'}">${status}</span><h3>${escapeHTML(lab.name)}</h3><p>${escapeHTML(lab.description || 'No description')} · Order ${escapeHTML(lab.display_order)}</p><div class="dm-actions"><button class="dm-soft" data-edit="${lab.id}" type="button">Edit</button><button class="dm-danger" data-del="${lab.id}" type="button">Delete</button></div></article>`;
+    }).join('') || '<p class="dm-empty">No laboratories have been added to this department yet.</p>';
+    main.innerHTML = `<section class="dm-panel"><div class="dm-head"><h2>Laboratories</h2><button class="dm-primary" id="dmAddLab" type="button">Add laboratory</button></div><p>Active laboratories appear on the public department page in this order.</p><div class="dm-list">${cards}</div></section>`;
+    document.getElementById('dmAddLab').onclick = () => openLabForm(null, rows.length + 1);
+    main.querySelectorAll('[data-edit]').forEach((button) => {
+        button.onclick = () => openLabForm(rows.find((lab) => String(lab.id) === button.getAttribute('data-edit')), rows.length + 1);
+    });
+    main.querySelectorAll('[data-del]').forEach((button) => {
+        button.onclick = async () => {
+            const lab = rows.find((item) => String(item.id) === button.getAttribute('data-del'));
+            if (!await dmAsk(`Delete ${lab ? lab.name : 'this laboratory'}?`)) return;
+            try {
+                await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/laboratories/${button.getAttribute('data-del')}`, { method: 'DELETE' });
+                dmToast('Laboratory deleted.');
+                renderLabs(main);
+            } catch (err) { dmToast(err.message); }
+        };
+    });
+}
+
+function openLabForm(lab, nextOrder) {
+    const dialog = document.getElementById('dmSheet');
+    dialog.innerHTML = `<form><h2>${lab ? 'Edit laboratory' : 'Add laboratory'}</h2>
+        <label>Name<input name="name" required maxlength="200" value="${escapeHTML(lab && lab.name || '')}"></label>
+        <label>Description<textarea name="description">${escapeHTML(lab && lab.description || '')}</textarea></label>
+        <label>Display order<input name="display_order" type="number" min="0" max="9999" value="${escapeHTML(lab ? lab.display_order : nextOrder)}"></label>
+        <label>Visible on the public page<input name="is_active" type="checkbox" ${!lab || lab.is_active ? 'checked' : ''}></label>
+        ${lab && lab.image_url ? `<p>Current photograph</p><img src="${escapeHTML(lab.image_url)}" alt="" style="width:8rem;height:6rem;object-fit:cover;border-radius:12px"><label>Remove photograph<input name="remove_image" type="checkbox"></label>` : ''}
+        <label>Photograph<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <div class="dm-actions"><button class="dm-soft" type="button" id="dmClose">Cancel</button><button class="dm-primary" type="submit">Save</button></div></form>`;
+    dialog.showModal();
+    dialog.querySelector('#dmClose').onclick = () => dialog.close();
+    dialog.querySelector('form').onsubmit = async (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        data.set('is_active', event.target.is_active.checked ? '1' : '0');
+        if (event.target.remove_image) data.set('remove_image', event.target.remove_image.checked ? '1' : '0');
+        if (!data.get('image') || !data.get('image').name) data.delete('image');
+        try {
+            await dmFetch(`/api/department-content/${encodeURIComponent(dm.code)}/laboratories${lab ? '/' + lab.id : ''}`, { method: lab ? 'PATCH' : 'POST', body: data });
+            dialog.close();
+            dmToast('Laboratory saved.');
+            renderLabs(document.getElementById('dmMain'));
         } catch (err) { dmToast(err.message); }
     };
 }

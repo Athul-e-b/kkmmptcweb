@@ -43,6 +43,22 @@ class Department(Base):
     events = relationship("Event", back_populates="department")
     gallery = relationship("GalleryPhoto", back_populates="department")
     login_accounts = relationship("DepartmentUser", back_populates="department")
+    laboratories = relationship("DepartmentLaboratory", back_populates="department", cascade="all, delete-orphan")
+
+
+class DepartmentLaboratory(Base):
+    __tablename__ = "department_laboratories"
+    id = Column(Integer, primary_key=True, index=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    image_url = Column(String(255), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, nullable=True)
+
+    department = relationship("Department", back_populates="laboratories")
 
 
 class Staff(Base):

@@ -2,7 +2,7 @@
  * Shared public-site helpers: college contact, loading/empty/error states.
  */
 async function fetchJSON(url) {
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('Request failed');
     return res.json();
 }

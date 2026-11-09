@@ -12,7 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.orm import Session
 
-from database import Base, engine, ensure_sqlite_columns, get_db, seed_scrolling_notifications_if_empty, seed_campus_pages_if_missing, seed_first_year_if_missing
+from database import Base, engine, ensure_sqlite_columns, get_db, SessionLocal, seed_scrolling_notifications_if_empty, seed_campus_pages_if_missing, seed_first_year_if_missing
+from department_labs import seed_department_laboratories
 import models
 from routers import admin_auth, departments, staff, events, principal, grievances, notices, applications, gallery, college_info, scrolling_notifications, department_auth, department_users, campus_life, clubs, department_content, first_year
 
@@ -21,6 +22,11 @@ ensure_sqlite_columns()
 seed_scrolling_notifications_if_empty()
 seed_campus_pages_if_missing()
 seed_first_year_if_missing()
+_lab_db = SessionLocal()
+try:
+    seed_department_laboratories(_lab_db)
+finally:
+    _lab_db.close()
 
 app = FastAPI(title="KKMMPTC Admin API", version="1.0.0")
 
@@ -40,7 +46,7 @@ async def no_cache_for_frontend(request: Request, call_next):
     (uploaded images are immutable once created, so those are fine to cache).
     """
     response = await call_next(request)
-    if not request.url.path.startswith("/api/") and not request.url.path.startswith("/uploads/"):
+    if request.url.path.startswith("/api/") or not request.url.path.startswith("/uploads/"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"

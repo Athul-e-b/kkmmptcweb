@@ -140,10 +140,24 @@ function contentCard(item) {
         </article>`;
 }
 
+function departmentLabs(d, pack) {
+    if (pack && Array.isArray(pack.laboratories)) {
+        return pack.laboratories.filter((lab) => lab && String(lab.name || '').trim());
+    }
+    return lines(d && d.labs_text).map((name) => ({ name: name }));
+}
+
+function laboratoryCard(lab) {
+    const name = typeof lab === 'string' ? lab : lab.name;
+    const description = typeof lab === 'string' ? '' : String(lab.description || '').trim();
+    const image = typeof lab === 'string' ? '' : dpSrc(lab.image_url);
+    return `<article class="dp-card dp-reveal">${image ? `<div class="dp-media"><img src="${dpText(image)}" alt="" loading="lazy" data-kkm-fill="cover"></div>` : ''}<div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(name)}</h3>${description ? `<p class="dp-lead">${dpText(description)}</p>` : ''}</div></article>`;
+}
+
 function detailHTML(d, staff, events, gallery, bundle, others) {
     const hod = (d.hod && d.hod.name && d.hod) || (staff || []).find((s) => s.role === 'HOD' && s.name);
     const faculty = (staff || []).filter((s) => s && s.name && s.role !== 'HOD' && s.is_active !== 0);
-    const labs = lines(d.labs_text);
+    const labs = departmentLabs(d, bundle);
     const careers = lines(d.career_text);
     const pack = bundle || {};
     const activity = pack.events && pack.events.length ? pack.events : (events || []);
@@ -162,7 +176,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
     if (facts) sections.push(['facts', 'Quick facts']);
     if (d.vision || d.mission) sections.push(['vision', 'Vision and mission']);
     if (hod || faculty.length) sections.push(['people', 'Faculty']);
-    if (labs.length) sections.push(['labs', 'Laboratories']);
+    sections.push(['labs', 'Laboratories']);
     if (careers.length) sections.push(['careers', 'Career paths']);
     sections.push(['clubs', 'Student Clubs']);
     if (activity.length) sections.push(['events', 'Activities']);
@@ -212,7 +226,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
         </div></section>` : ''}
         ${(hod || faculty.length) ? `<section class="dp-section" id="dp-people"><h3>Head of department and faculty</h3><div class="dp-grid">${[hod, ...faculty].filter(Boolean).map((person) => `
             <article class="dp-person${person.role === 'HOD' ? ' dp-hod' : ''} dp-reveal">${avatar(person)}<div><strong>${dpText(person.name)}</strong>${person.role || person.designation ? `<div>${dpText(person.role === 'HOD' ? 'Head of Department' : (person.designation || person.role))}</div>` : ''}</div></article>`).join('')}</div></section>` : ''}
-        ${labs.length ? `<section class="dp-section" id="dp-labs"><h3>Laboratories and facilities</h3><div class="dp-grid">${labs.map((lab) => `<article class="dp-card dp-reveal"><div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(lab)}</h3></div></article>`).join('')}</div></section>` : ''}
+        <section class="dp-section" id="dp-labs"><h3>Laboratories and facilities</h3>${labs.length ? `<div class="dp-grid">${labs.map(laboratoryCard).join('')}</div>` : '<p class="dp-club-empty">No laboratories have been added to this department yet.</p>'}</section>
         ${careers.length ? `<section class="dp-section" id="dp-careers"><h3>Career paths</h3><div class="dp-pills">${careers.map((item) => `<span>${dpText(item)}</span>`).join('')}</div></section>` : ''}
         <section class="dp-section dp-clubs" id="dp-clubs">
             <h3>Student Clubs</h3>
@@ -376,7 +390,7 @@ async function loadDepartmentsPage() {
     container.innerHTML = departmentSkeleton();
     try {
         if (code) {
-            const response = await fetch(`/api/departments/${encodeURIComponent(code)}`);
+            const response = await fetch(`/api/departments/${encodeURIComponent(code)}`, { cache: 'no-store' });
             if (response.status === 404) code = '';
             else if (!response.ok) throw new Error('Request failed');
             else {

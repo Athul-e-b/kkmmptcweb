@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session, joinedload
 import auth
 import models
 from database import get_db
+from department_labs import clean_name, clean_order, ensure_unique, next_order, refresh_labs_text, replace_labs_from_text
 from dept_codes import canonical_dept_code
 from file_storage import DOC_OFFICE_EXT, IMAGE_EXT, delete_local_file, save_upload
 
@@ -453,6 +454,50 @@ def _public_department_clubs(db: Session, dept: models.Department) -> list:
     return seen
 
 
+def _active_labs(db: Session, department_id: int):
+    return (
+        db.query(models.DepartmentLaboratory)
+        .filter(
+            models.DepartmentLaboratory.department_id == department_id,
+            models.DepartmentLaboratory.is_active == 1,
+        )
+        .order_by(models.DepartmentLaboratory.display_order, models.DepartmentLaboratory.id)
+        .all()
+    )
+
+
+def _lab_public(row: models.DepartmentLaboratory) -> dict:
+    return {
+        "name": row.name,
+        "description": row.description or "",
+        "image_url": row.image_url or "",
+        "display_order": int(row.display_order or 0),
+    }
+
+
+def _lab_out(row: models.DepartmentLaboratory) -> dict:
+    data = _lab_public(row)
+    data.update({
+        "id": row.id,
+        "is_active": int(row.is_active or 0),
+    })
+    return data
+
+
+def _owned_lab(db: Session, dept: models.Department, lab_id: int) -> models.DepartmentLaboratory:
+    row = (
+        db.query(models.DepartmentLaboratory)
+        .filter(
+            models.DepartmentLaboratory.id == lab_id,
+            models.DepartmentLaboratory.department_id == dept.id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Laboratory not found")
+    return row
+
+
 @router.get("/public/{code}")
 def public_bundle(code: str, db: Session = Depends(get_db)):
     dept = _dept(db, code)
@@ -478,6 +523,7 @@ def public_bundle(code: str, db: Session = Depends(get_db)):
         "projects": [_project_out(row) for row in db.query(models.DepartmentProject).filter_by(department_id=dept.id, review_status="approved").all()],
         "reports": [_report_out(row) for row in db.query(models.ActivityReport).filter_by(department_id=dept.id, review_status="approved").all()],
         "gallery": gallery,
+        "laboratories": [_lab_public(row) for row in _active_labs(db, dept.id)],
     }
 
 
@@ -508,6 +554,7 @@ def summary(code: str, actor: dict = Depends(auth.require_actor), db: Session = 
         "events": count(models.Event),
         "notices": count(models.Notice),
         "projects": count(models.DepartmentProject),
+        "laboratories": db.query(models.DepartmentLaboratory).filter(models.DepartmentLaboratory.department_id == dept.id).count(),
         "pending": (
             count(models.Event, True) + count(models.Notice, True)
             + count(models.DepartmentProject, True) + count(models.ActivityReport, True)
@@ -542,12 +589,14 @@ async def update_profile(
     fields = {
         "name": name, "description": description, "vision": vision, "mission": mission,
         "phone": phone, "email": email, "course_name": course_name, "duration": duration,
-        "eligibility": eligibility, "other_details": other_details, "labs_text": labs_text,
+        "eligibility": eligibility, "other_details": other_details,
         "career_text": career_text,
     }
     for key, value in fields.items():
         if value is not None:
             setattr(dept, key, value.strip() or None)
+    if labs_text is not None:
+        replace_labs_from_text(db, dept, labs_text)
     if intake is not None:
         if intake < 0 or intake > 500:
             raise HTTPException(status_code=422, detail="Intake must be between 0 and 500")
@@ -559,6 +608,105 @@ async def update_profile(
     db.commit()
     db.refresh(dept)
     return {"ok": True, "code": dept.code}
+
+
+def _apply_lab(row: models.DepartmentLaboratory, name: str, description: Optional[str], display_order: int, is_active: int) -> None:
+    row.name = name
+    row.description = (description or "").strip() or None
+    row.display_order = display_order
+    row.is_active = 1 if int(is_active) else 0
+    row.updated_at = datetime.utcnow()
+
+
+@router.get("/{code}/laboratories")
+def list_laboratories(code: str, actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
+    dept = _dept(db, code)
+    _guard(actor, dept)
+    rows = (
+        db.query(models.DepartmentLaboratory)
+        .filter(models.DepartmentLaboratory.department_id == dept.id)
+        .order_by(models.DepartmentLaboratory.display_order, models.DepartmentLaboratory.id)
+        .all()
+    )
+    return {"laboratories": [_lab_out(row) for row in rows]}
+
+
+@router.post("/{code}/laboratories")
+async def create_laboratory(
+    code: str,
+    name: str = Form(...),
+    description: str = Form(""),
+    display_order: Optional[str] = Form(None),
+    is_active: int = Form(1),
+    image: Optional[UploadFile] = File(None),
+    actor: dict = Depends(auth.require_actor),
+    db: Session = Depends(get_db),
+):
+    dept = _dept(db, code)
+    _guard(actor, dept)
+    label = clean_name(name)
+    ensure_unique(db, dept.id, label)
+    row = models.DepartmentLaboratory(
+        department_id=dept.id,
+        name=label,
+        is_active=1 if int(is_active) else 0,
+        display_order=clean_order(display_order, next_order(db, dept.id)),
+    )
+    db.add(row)
+    db.flush()
+    _apply_lab(row, label, description, row.display_order, is_active)
+    image_url = await _image(image, "department-labs")
+    if image_url:
+        row.image_url = image_url
+    refresh_labs_text(db, dept)
+    db.commit()
+    db.refresh(row)
+    return _lab_out(row)
+
+
+@router.patch("/{code}/laboratories/{lab_id}")
+async def update_laboratory(
+    code: str,
+    lab_id: int,
+    name: str = Form(...),
+    description: str = Form(""),
+    display_order: Optional[str] = Form(None),
+    is_active: int = Form(1),
+    remove_image: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
+    actor: dict = Depends(auth.require_actor),
+    db: Session = Depends(get_db),
+):
+    dept = _dept(db, code)
+    _guard(actor, dept)
+    row = _owned_lab(db, dept, lab_id)
+    label = clean_name(name)
+    ensure_unique(db, dept.id, label, ignore_id=row.id)
+    _apply_lab(row, label, description, clean_order(display_order, int(row.display_order or 0)), is_active)
+    if remove_image in ("1", "true", "yes"):
+        delete_local_file(row.image_url)
+        row.image_url = None
+    image_url = await _image(image, "department-labs")
+    if image_url:
+        delete_local_file(row.image_url)
+        row.image_url = image_url
+    refresh_labs_text(db, dept)
+    db.commit()
+    db.refresh(row)
+    return _lab_out(row)
+
+
+@router.delete("/{code}/laboratories/{lab_id}")
+def delete_laboratory(code: str, lab_id: int, actor: dict = Depends(auth.require_actor), db: Session = Depends(get_db)):
+    dept = _dept(db, code)
+    _guard(actor, dept)
+    row = _owned_lab(db, dept, lab_id)
+    delete_local_file(row.image_url)
+    db.delete(row)
+    db.flush()
+    refresh_labs_text(db, dept)
+    db.commit()
+    return {"ok": True}
 
 
 def _save_members(db: Session, club: models.DepartmentClub, raw: Optional[str]) -> None:
