@@ -224,7 +224,15 @@ def set_status(
 
 @router.delete("/{user_id}")
 def delete_user(user_id: int, _admin: bool = Depends(auth.require_admin), db: Session = Depends(get_db)):
+    """Remove one department login. The department and its content stay in place."""
     user = _get_or_404(db, user_id)
     db.delete(user)
-    _save(db)
-    return {"ok": True}
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="This login account could not be deleted. The department was not changed.")
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="This login account could not be deleted. The department was not changed.")
+    return {"ok": True, "message": "Department login account deleted"}

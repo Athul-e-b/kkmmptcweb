@@ -258,6 +258,7 @@ function cmsDeptAccountActions(user) {
             <button type="button" class="px-2 py-1 rounded-md border border-slate-300 font-semibold" onclick="cmsShowDeptEditor(${user.id}, 'username')">Username</button>
             <button type="button" class="px-2 py-1 rounded-md border border-slate-300 font-semibold" onclick="cmsShowDeptEditor(${user.id}, 'password')">Reset password</button>
             <button type="button" class="px-2 py-1 rounded-md font-semibold ${active ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'}" onclick="cmsToggleDeptAccount(${user.id}, ${active ? 0 : 1})">${active ? 'Deactivate' : 'Activate'}</button>
+            <button type="button" class="px-2 py-1 rounded-md border border-slate-300 font-semibold text-red-700" onclick="cmsDeleteDeptAccount(${user.id})">Delete</button>
         </div>
         <form class="dept-user-editor hidden mt-2 grid gap-2" data-user="${user.id}" data-mode="username" onsubmit="cmsSaveDeptUsername(event, ${user.id})">
             <input name="username" value="${escapeHTML(user.username)}" maxlength="32" required class="px-2 py-1.5 rounded-md border border-slate-300" aria-label="New username">
@@ -284,7 +285,7 @@ async function cmsDeptAccounts() {
         select.disabled = open.length === 0;
         if (submit) submit.disabled = open.length === 0;
         if (hint && open.length === 0) {
-            hint.textContent = 'Every department already has a login account. Use the list above to change a username, reset a password, or activate or deactivate an account.';
+            hint.textContent = 'Every department already has a login account. Use the list above to change a username, reset a password, activate or deactivate an account, or delete an account.';
         }
     }
     if (!cmsDeptUsers.length) {
@@ -374,6 +375,17 @@ async function cmsResetDeptPassword(event, id) {
         await cmsDeptAccounts();
     } catch (err) {
         toast('✕ ' + err.message, false);
+    }
+}
+
+async function cmsDeleteDeptAccount(id) {
+    if (!window.confirm('Are you sure you want to permanently delete this department login account? This action cannot be undone.')) return;
+    try {
+        await apiCall(`/api/admin/department-users/${id}`, { method: 'DELETE' });
+        toast('✓ Department login account deleted');
+        await cmsDeptAccounts();
+    } catch (err) {
+        toast('✕ ' + (err.message || 'Could not delete this department login account'), false);
     }
 }
 
