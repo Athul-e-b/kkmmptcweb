@@ -320,11 +320,25 @@ function cmsShowDeptEditor(id, mode) {
 async function cmsCreateDeptAccount(event) {
     event.preventDefault();
     const form = event.target;
+    const password = form.password.value;
+    const confirmPassword = form.confirm_password.value;
+    if (password !== confirmPassword) {
+        toast('✕ Confirm password does not match', false);
+        return;
+    }
+    const departmentId = Number(form.department_id.value);
+    if (!departmentId) {
+        toast('✕ Department is required', false);
+        return;
+    }
     const body = {
-        department_id: Number(form.department_id.value),
-        username: form.username.value,
-        password: form.password.value,
-        confirm_password: form.confirm_password.value,
+        department_id: departmentId,
+        name: form.name.value.trim(),
+        designation: form.designation.value.trim(),
+        email: form.email.value.trim(),
+        username: form.username.value.trim(),
+        password,
+        confirm_password: confirmPassword,
     };
     try {
         await apiCall('/api/admin/department-users', {
@@ -332,6 +346,9 @@ async function cmsCreateDeptAccount(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
+        form.name.value = '';
+        form.designation.value = '';
+        form.email.value = '';
         form.username.value = '';
         form.password.value = '';
         form.confirm_password.value = '';

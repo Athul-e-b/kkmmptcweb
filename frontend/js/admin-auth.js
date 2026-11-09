@@ -37,10 +37,29 @@ function formatApiError(data, status) {
     const d = data && data.detail;
     if (typeof d === 'string' && d.trim()) return d;
     if (Array.isArray(d)) {
-        return d.map((x) => x.msg || x.message || JSON.stringify(x)).join('; ') || `Request failed (${status})`;
+        return d.map(formatValidationItem).filter(Boolean).join('; ') || `Request failed (${status})`;
     }
-    if (d && typeof d === 'object') return d.msg || JSON.stringify(d);
+    if (d && typeof d === 'object') return formatValidationItem(d);
     return `Request failed (${status})`;
+}
+
+function formatValidationItem(item) {
+    const loc = Array.isArray(item.loc) ? item.loc.filter((part) => part !== 'body' && typeof part !== 'number') : [];
+    const key = loc.length ? String(loc[loc.length - 1]) : '';
+    const labels = {
+        name: 'Name',
+        designation: 'Designation',
+        email: 'Email',
+        username: 'Username',
+        password: 'Password',
+        confirm_password: 'Confirm password',
+        department_id: 'Department',
+    };
+    const label = labels[key] || key.replaceAll('_', ' ');
+    const msg = item.msg || item.message || 'Invalid value';
+    if (!label) return msg;
+    if (msg === 'Field required') return `${label} is required`;
+    return `${label}: ${msg}`;
 }
 
 async function adminLogin(e) {

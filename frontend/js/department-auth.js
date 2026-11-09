@@ -26,7 +26,26 @@ function departmentErrorText(data, fallback) {
     const detail = data && data.detail;
     if (typeof detail === 'string' && detail.trim()) return detail;
     if (Array.isArray(detail)) {
-        return detail.map((item) => item.msg || item.message || '').filter(Boolean).join('; ') || fallback;
+        return detail.map(departmentValidationItem).filter(Boolean).join('; ') || fallback;
     }
     return fallback;
+}
+
+function departmentValidationItem(item) {
+    const loc = Array.isArray(item.loc) ? item.loc.filter((part) => part !== 'body' && typeof part !== 'number') : [];
+    const key = loc.length ? String(loc[loc.length - 1]) : '';
+    const labels = {
+        name: 'Name',
+        designation: 'Designation',
+        email: 'Email',
+        username: 'Username',
+        password: 'Password',
+        confirm_password: 'Confirm password',
+        department_id: 'Department',
+    };
+    const label = labels[key] || key.replaceAll('_', ' ');
+    const msg = item.msg || item.message || 'Invalid value';
+    if (!label) return msg;
+    if (msg === 'Field required') return `${label} is required`;
+    return `${label}: ${msg}`;
 }
