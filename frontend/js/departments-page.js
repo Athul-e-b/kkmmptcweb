@@ -34,7 +34,7 @@ function accentName(name) {
 function avatar(person, className) {
     if (!person || !person.name) return '';
     if (person.photo_url) {
-        return `<img src="${dpText(person.photo_url)}" alt="" class="${className || ''}" loading="lazy">`;
+        return `<img src="${dpText(person.photo_url)}" alt="${dpText(person.name)}" class="${className || ''}" loading="lazy">`;
     }
     return `<span class="dp-avatar ${className || ''}">${dpText(person.name.charAt(0))}</span>`;
 }
@@ -57,7 +57,7 @@ function deptCard(d) {
     return `
         <a class="dp-card dp-reveal" href="departments.html?department=${encodeURIComponent(d.code)}">
             <div class="dp-media">
-                ${d.image_url ? `<img src="${dpText(d.image_url)}" alt="" loading="lazy">` : ''}
+                ${d.image_url ? `<img src="${dpText(d.image_url)}" alt="${dpText(d.name)}" loading="lazy">` : ''}
                 <span class="dp-code">${dpText(d.code)}</span>
             </div>
             <div class="dp-body">
@@ -129,7 +129,7 @@ function contentCard(item) {
     const href = item.document_url || item.certificate_url || '';
     return `
         <article class="dp-card dp-reveal">
-            ${image ? `<div class="dp-media"><img src="${dpText(image)}" alt="" loading="lazy">${item.event_type ? `<span class="dp-code">${dpText(item.event_type)}</span>` : ''}</div>` : ''}
+            ${image ? `<div class="dp-media"><img src="${dpText(image)}" alt="${dpText(title)}" loading="lazy">${item.event_type ? `<span class="dp-code">${dpText(item.event_type)}</span>` : ''}</div>` : ''}
             <div class="dp-body">
                 ${item.category && !image ? `<span class="dp-code" style="position:static;align-self:flex-start">${dpText(item.category)}</span>` : ''}
                 <h3>${dpText(title)}</h3>
@@ -151,7 +151,7 @@ function laboratoryCard(lab) {
     const name = typeof lab === 'string' ? lab : lab.name;
     const description = typeof lab === 'string' ? '' : String(lab.description || '').trim();
     const image = typeof lab === 'string' ? '' : dpSrc(lab.image_url);
-    return `<article class="dp-card dp-reveal">${image ? `<div class="dp-media"><img src="${dpText(image)}" alt="" loading="lazy" data-kkm-fill="cover"></div>` : ''}<div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(name)}</h3>${description ? `<p class="dp-lead">${dpText(description)}</p>` : ''}</div></article>`;
+    return `<article class="dp-card dp-reveal">${image ? `<div class="dp-media"><img src="${dpText(image)}" alt="${dpText(name)}" loading="lazy" data-kkm-fill="cover"></div>` : ''}<div class="dp-body"><span class="dp-code" style="position:static;align-self:flex-start">${dpIcon(DP_ICONS.flask)}</span><h3>${dpText(name)}</h3>${description ? `<p class="dp-lead">${dpText(description)}</p>` : ''}</div></article>`;
 }
 
 function detailHTML(d, staff, events, gallery, bundle, others) {
@@ -213,7 +213,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
                 </div>
             </div>
             <div class="dp-frame">
-                <div class="dp-media">${d.image_url ? `<img src="${dpText(d.image_url)}" alt="" loading="lazy">` : ''}</div>
+                <div class="dp-media">${d.image_url ? `<img src="${dpText(d.image_url)}" alt="${dpText(d.name)}" loading="lazy">` : ''}</div>
                 ${hod ? `<aside class="dp-chip dp-chip-hod">${avatar(hod)}<span><strong>${dpText(hod.name)}</strong><span>${hodIsInCharge(hod) ? 'HOD, in charge' : 'Head of Department'}</span></span></aside>` : ''}
                 ${d.intake != null ? `<aside class="dp-chip dp-chip-intake"><span><strong>Intake ${dpText(d.intake)}</strong><span>seats</span></span></aside>` : ''}
             </div>
@@ -241,7 +241,7 @@ function detailHTML(d, staff, events, gallery, bundle, others) {
         ${(pack.projects || []).length ? `<section class="dp-section" id="dp-projects"><h3>Projects and achievements</h3><div class="dp-grid">${pack.projects.map(contentCard).join('')}</div></section>` : ''}
         ${photos.length ? `<section class="dp-section" id="dp-gallery"><h3>Photo gallery</h3><div class="dp-grid">${photos.map((photo, index) => `
             <button class="dp-card" type="button" data-dp-photo="${index}">
-                <div class="dp-media">${photo.media_type === 'video' ? `<span class="dp-code">Video</span>` : `<img src="${dpText(photo.image_url)}" alt="" loading="lazy">`}</div>
+                <div class="dp-media">${photo.media_type === 'video' ? `<span class="dp-code">Video</span>` : `<img src="${dpText(photo.image_url)}" alt="${dpText(photo.title || photo.caption || 'Department photograph')}" loading="lazy">`}</div>
                 ${photo.title || photo.caption ? `<div class="dp-body"><h3>${dpText(photo.title || photo.caption)}</h3></div>` : ''}
             </button>`).join('')}</div></section>` : ''}
         ${Object.keys(years).length ? `<section class="dp-section" id="dp-reports"><h3>Activity reports</h3>${Object.keys(years).map((year) => `<h4>${dpText(year)}</h4><div class="dp-grid">${years[year].map(contentCard).join('')}</div>`).join('')}</section>` : ''}

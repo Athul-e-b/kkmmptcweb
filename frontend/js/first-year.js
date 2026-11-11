@@ -216,7 +216,7 @@ function facultyCard(person) {
     const initial = fyText((person.name || "F").trim().charAt(0).toUpperCase() || "F");
     const dept = person.department && person.department.name ? person.department.name : "";
     return `<article class="fy-person fy-reveal">
-        ${photo ? `<img class="fy-photo" src="${fyText(photo)}" alt="" data-kkm-fill="cover">` : `<div class="fy-fallback" aria-hidden="true">${initial}</div>`}
+        ${photo ? `<img class="fy-photo" src="${fyText(photo)}" alt="${fyText(person.name)}" loading="lazy" data-kkm-fill="cover">` : `<div class="fy-fallback" aria-hidden="true">${initial}</div>`}
         <div class="fy-person-body">
             ${person.designation ? `<small>${fyText(person.designation)}</small>` : ""}
             <h3>${fyText(person.name)}</h3>
@@ -232,7 +232,7 @@ function labCard(lab) {
     const programmes = (lab.programmes || []).map((item) => item.label).filter(Boolean);
     const subjects = (lab.subjects || []).map((item) => item.name).filter(Boolean);
     return `<article class="fy-lab fy-reveal">
-        ${photo ? `<img class="fy-photo" src="${fyText(photo)}" alt="" data-kkm-fill="cover">` : ""}
+        ${photo ? `<img class="fy-photo" src="${fyText(photo)}" alt="${fyText(lab.name)}" loading="lazy" data-kkm-fill="cover">` : ""}
         <div class="fy-lab-body">
             <h3>${fyText(lab.name)}</h3>
             ${lab.description ? `<p>${fyText(lab.description)}</p>` : ""}

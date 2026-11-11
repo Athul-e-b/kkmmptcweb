@@ -283,7 +283,7 @@ function openDeptModal(code) {
                 <span class="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">${d.intake || ''} Seats ${d.duration ? '(' + escapeHTML(d.duration) + ')' : ''}</span>
                 <h3 class="text-2xl font-bold font-heading text-slate-900 mt-2 mb-1">${escapeHTML(d.course_name || d.name)}</h3>
                 <div class="flex items-center gap-2 text-xs text-primary font-semibold mb-3">
-                    ${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-16 h-16 rounded-full object-cover" alt="">` : ''}
+                    ${hod && hod.photo_url ? `<img src="${escapeHTML(hod.photo_url)}" class="w-16 h-16 rounded-full object-cover" alt="${escapeHTML(hod.name || 'Head of Department')}">` : ''}
                     <span>Head of Department: ${escapeHTML(hod ? hod.name : 'Not provided')}</span>
                 </div>
                 ${hodIsInCharge(hod) ? `<p class="text-xs font-semibold text-primary mb-3">In Charge</p>` : ''}

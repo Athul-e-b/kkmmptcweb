@@ -9,8 +9,10 @@ import os
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session
+from seo import ROBOTS_TXT, build_sitemap, canonical_redirect, forwarded_proto, is_private_path, request_host
 
 from database import Base, engine, ensure_sqlite_columns, get_db, SessionLocal, seed_scrolling_notifications_if_empty, seed_campus_pages_if_missing, seed_first_year_if_missing
 from department_labs import seed_department_laboratories
@@ -34,6 +36,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 
 @app.middleware("http")
@@ -50,7 +53,22 @@ async def no_cache_for_frontend(request: Request, call_next):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    if is_private_path(request.url.path):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
     return response
+
+
+@app.middleware("http")
+async def primary_host(request: Request, call_next):
+    target = canonical_redirect(
+        request_host(request.headers),
+        forwarded_proto(request.headers),
+        request.url.path,
+        request.url.query,
+    )
+    if target:
+        return RedirectResponse(target, status_code=301)
+    return await call_next(request)
 
 
 app.include_router(admin_auth.router)
@@ -76,6 +94,16 @@ FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
 UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+
+
+@app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)
+def robots_txt():
+    return Response(content=ROBOTS_TXT, media_type="text/plain")
+
+
+@app.api_route("/sitemap.xml", methods=["GET", "HEAD"], include_in_schema=False)
+def sitemap_xml():
+    return Response(content=build_sitemap(FRONTEND_DIR), media_type="application/xml")
 
 
 @app.get("/api/health")
